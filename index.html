@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1726">
+  <meta name="description" content="PSU Panthers hackathon command center: compare three challenges, track five SymStudio stages, and prepare a judge-ready prototype.">
+  <title>PSU Panthers | Hackathon Command Center</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #081321; --rail: #0b1929; --card: #112338; --card2: #132a3e;
+      --surface: #173045; --border: #294358; --border2: #38546a;
+      --text: #eef7fc; --muted: #a4b8c8; --quiet: #8098aa;
+      --mint: #60e0c5; --mint-dim: rgba(96,224,197,.12);
+      --amber: #ffc880; --amber-dim: rgba(255,200,128,.1);
+      --purple: #b8a9ff; --purple-dim: rgba(184,169,255,.12);
+      --shadow: 0 12px 36px rgba(2,8,19,.2);
+      font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body { margin: 0; background: var(--bg); color: var(--text); line-height: 1.5; }
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    a { color: inherit; }
+    .app { display: grid; grid-template-columns: 264px minmax(0, 1fr); min-height: 100vh; }
+    .rail { background: var(--rail); border-right: 1px solid var(--border); padding: 23px 15px; position: sticky; top: 0; height: 100vh; overflow: auto; display: flex; flex-direction: column; gap: 22px; }
+    .brand { display: flex; gap: 12px; align-items: center; padding: 5px 9px 17px; border-bottom: 1px solid var(--border); }
+    .logo { width: 43px; height: 43px; flex: 0 0 auto; border-radius: 13px; display: grid; place-items: center; font-weight: 900; letter-spacing: -.08em; color: #092320; background: linear-gradient(135deg,#60e0c5,#b5f3a8); box-shadow: 0 0 26px rgba(96,224,197,.2); }
+    .brand-name { font-size: 16px; font-weight: 830; letter-spacing: -.03em; line-height: 1.14; }
+    .brand-sub { color: var(--quiet); text-transform: uppercase; font-weight: 800; font-size: 10px; letter-spacing: .14em; margin-top: 5px; }
+    .rail-label { color: var(--quiet); font-size: 10px; font-weight: 850; text-transform: uppercase; letter-spacing: .15em; margin: 0 11px 9px; }
+    .nav { display: flex; flex-direction: column; gap: 5px; }
+    .nav a { text-decoration: none; color: #b9c9d6; display: flex; align-items: center; gap: 10px; border-radius: 10px; padding: 10px 11px; font-size: 13px; font-weight: 700; border: 1px solid transparent; }
+    .nav a:hover { background: #172a3d; color: white; }
+    .nav a.active { background: var(--mint-dim); border-color: rgba(96,224,197,.27); color: var(--mint); }
+    .nav .nav-num { width: 22px; height: 22px; font-size: 10px; display: grid; place-items: center; color: var(--muted); background: #1d3348; border-radius: 7px; flex: 0 0 auto; }
+    .nav a.active .nav-num { color: #082421; background: var(--mint); }
+    .nav .nav-label { flex: 1; }
+    .nav .nav-status { font-size: 10px; color: var(--quiet); font-variant-numeric: tabular-nums; }
+    .rail-footer { margin-top: auto; border-top: 1px solid var(--border); padding: 17px 8px 0; display: grid; gap: 10px; }
+    .rail-note { font-size: 11px; color: var(--quiet); line-height: 1.65; }
+    .rail-btn { width: 100%; border-radius: 9px; border: 1px solid var(--border2); padding: 9px 11px; background: #14293d; color: var(--text); text-align: left; font-size: 12px; font-weight: 750; }
+    .rail-btn:hover { border-color: var(--mint); }
+    .main { min-width: 0; }
+    .topbar { min-height: 76px; padding: 17px clamp(22px,3.4vw,49px); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; gap: 16px; background: rgba(12,27,43,.75); }
+    .event-line { color: var(--muted); font-size: 11px; text-transform: uppercase; font-weight: 800; letter-spacing: .13em; }
+    .event-sub { font-size: 13px; font-weight: 720; margin-top: 3px; }
+    .top-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; }
+    .pill { border: 1px solid var(--border2); border-radius: 999px; padding: 7px 11px; color: var(--muted); font-size: 11px; font-weight: 760; white-space: nowrap; }
+    .pill.mint { border-color: rgba(96,224,197,.35); background: var(--mint-dim); color: var(--mint); }
+    .content { max-width: 1380px; margin: 0 auto; padding: 34px clamp(18px,3.4vw,49px) 66px; }
+    .eyebrow { color: var(--mint); font-size: 10px; text-transform: uppercase; letter-spacing: .16em; font-weight: 900; }
+    .page-intro { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; margin-bottom: 21px; }
+    h1 { font-size: clamp(28px,3vw,43px); line-height: 1.12; letter-spacing: -.045em; margin: 9px 0 10px; }
+    h2 { font-size: 21px; letter-spacing: -.025em; margin: 0 0 4px; }
+    h3 { font-size: 15px; letter-spacing: -.01em; margin: 0; }
+    p { margin: 0; }
+    .lead { color: var(--muted); max-width: 760px; font-size: 14px; line-height: 1.7; }
+    .intro-actions { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 4px; }
+    .btn { border: 1px solid var(--border2); background: #193247; color: var(--text); display: inline-flex; justify-content: center; align-items: center; gap: 7px; min-height: 38px; padding: 8px 13px; border-radius: 9px; font-size: 12px; font-weight: 800; text-decoration: none; }
+    .btn:hover { filter: brightness(1.15); border-color: var(--mint); }
+    .btn:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, a:focus-visible { outline: 3px solid rgba(96,224,197,.6); outline-offset: 2px; }
+    .btn-primary { color: #07231e; background: var(--mint); border-color: var(--mint); }
+    .btn-amber { color: #271b06; background: var(--amber); border-color: var(--amber); }
+    .btn-ghost { background: transparent; }
+    .btn-small { padding: 6px 10px; min-height: 31px; font-size: 11px; }
+    .btn:disabled { cursor: default; opacity: .5; filter: none; }
+    .notice { border: 1px solid rgba(255,200,128,.24); background: var(--amber-dim); border-radius: 12px; padding: 13px 16px; display: flex; align-items: flex-start; gap: 11px; margin-bottom: 24px; color: #ead6b5; font-size: 12px; line-height: 1.65; }
+    .notice b { color: #ffe4bc; }
+    .info-dot { color: var(--amber); font-weight: 900; font-size: 16px; }
+    .stats { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 13px; margin-bottom: 23px; }
+    .stat { border: 1px solid var(--border); border-radius: 12px; background: linear-gradient(135deg,#13263b,#102034); padding: 18px; min-width: 0; }
+    .stat-k { color: var(--quiet); text-transform: uppercase; letter-spacing: .12em; font-size: 10px; font-weight: 850; }
+    .stat-v { font-size: 27px; font-weight: 880; line-height: 1.15; letter-spacing: -.04em; margin-top: 7px; overflow-wrap: anywhere; }
+    .stat-v.small { font-size: 18px; margin-top: 10px; }
+    .stat-foot { font-size: 11px; color: var(--muted); margin-top: 8px; }
+    .stat-v.green { color: var(--mint); }
+    .stat-v.amber { color: var(--amber); }
+    .section-heading { margin: 28px 0 13px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 10px; }
+    .section-heading p { color: var(--muted); font-size: 12px; }
+    .card { border: 1px solid var(--border); background: var(--card); border-radius: 14px; padding: 20px; box-shadow: var(--shadow); min-width: 0; }
+    .card-soft { background: var(--card2); }
+    .card-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 15px; }
+    .card-title h3 { font-size: 15px; }
+    .card-title span, .tiny { font-size: 11px; color: var(--muted); }
+    .problem-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 14px; }
+    .problem { border-top: 3px solid #547892; transition: border-color .15s; }
+    .problem.selected { border-color: var(--mint); background: linear-gradient(180deg,#153a43,#122437 35%); }
+    .problem.best { border-top-color: var(--amber); }
+    .problem-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+    .problem .score { font-size: 23px; line-height: 1; letter-spacing: -.04em; font-weight: 890; font-variant-numeric: tabular-nums; }
+    .score span { font-size: 12px; color: var(--quiet); font-weight: 650; }
+    .tag { display: inline-flex; align-items: center; gap: 5px; border: 1px solid var(--border2); background: #1a344a; border-radius: 6px; font-size: 10px; color: #bad0df; font-weight: 830; text-transform: uppercase; letter-spacing: .07em; padding: 4px 7px; }
+    .tag.mint { border-color: rgba(96,224,197,.35); color: var(--mint); background: var(--mint-dim); }
+    .tag.amber { border-color: rgba(255,200,128,.35); color: var(--amber); background: var(--amber-dim); }
+    .label { display: block; color: #c7dbe6; font-size: 11px; font-weight: 800; margin-bottom: 7px; }
+    .input, .textarea, .select { background: #091a2a; border: 1px solid #345066; color: var(--text); border-radius: 9px; width: 100%; padding: 10px 11px; font-size: 12px; outline: none; }
+    .input::placeholder, .textarea::placeholder { color: #738b9d; }
+    .textarea { min-height: 91px; resize: vertical; }
+    .input:focus, .textarea:focus, .select:focus { border-color: var(--mint); }
+    .field { margin-bottom: 14px; }
+    .field:last-child { margin-bottom: 0; }
+    .field-note { color: var(--quiet); font-size: 10px; margin-top: 5px; }
+    .problem .btn { width: 100%; margin-top: 4px; }
+    .scoretable-wrapper { overflow-x: auto; }
+    table.scoretable { border-collapse: collapse; width: 100%; min-width: 670px; }
+    .scoretable th { text-align: left; padding: 11px 12px; font-size: 11px; color: var(--quiet); text-transform: uppercase; letter-spacing: .07em; border-bottom: 1px solid var(--border); }
+    .scoretable td { padding: 11px 12px; border-bottom: 1px solid rgba(57,86,107,.45); font-size: 12px; }
+    .scoretable tr:last-child td { border-bottom: 0; }
+    .scoretable th:not(:first-child), .scoretable td:not(:first-child) { text-align: center; }
+    .scoretable td strong { color: var(--text); }
+    .scoretable .weight { color: var(--mint); font-weight: 850; }
+    .scoretable .help { color: var(--quiet); font-size: 11px; display: block; line-height: 1.45; margin-top: 3px; }
+    .rating { width: 72px; padding: 7px 8px; border-radius: 8px; text-align: center; font-weight: 850; font-variant-numeric: tabular-nums; background: #0b2030; border: 1px solid #35536a; color: white; }
+    .rating:focus { border-color: var(--mint); }
+    .score-row { background: rgba(96,224,197,.06); }
+    .score-row td { font-size: 16px; font-weight: 890; color: var(--mint); }
+    .subgrid { display: grid; grid-template-columns: minmax(0,1.25fr) minmax(290px,.75fr); gap: 16px; }
+    .checkgroup { display: grid; gap: 9px; }
+    .check-item { border: 1px solid var(--border); border-radius: 10px; display: flex; align-items: flex-start; gap: 11px; padding: 12px; background: #11283b; cursor: pointer; }
+    .check-item:hover { border-color: #46657a; }
+    .check-item.done { border-color: rgba(96,224,197,.26); background: rgba(96,224,197,.065); }
+    .check-item input { width: 17px; height: 17px; margin: 2px 0 0; accent-color: var(--mint); flex: 0 0 auto; }
+    .check-text { min-width: 0; display: grid; gap: 3px; }
+    .check-title { font-size: 12px; color: #e6f1f7; font-weight: 790; }
+    .check-desc { color: var(--muted); font-size: 11px; line-height: 1.55; }
+    .check-item.done .check-title { color: #a1e4d7; }
+    .check-meta { flex: 0 0 auto; margin-left: auto; font-size: 9px; text-transform: uppercase; color: var(--quiet); font-weight: 800; letter-spacing: .07em; }
+    .check-meta.required { color: var(--amber); }
+    .stage-meter { margin-bottom: 21px; }
+    .progress-track { height: 9px; border-radius: 99px; background: #263e50; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg,#35bdaa,#89e8b0); border-radius: inherit; transition: width .25s; }
+    .progress-top { display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 11px; margin: 0 0 9px; }
+    .rubric-item { padding: 13px 0; border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr auto; align-items: start; gap: 12px; }
+    .rubric-item:first-of-type { border-top: none; }
+    .rubric-item strong { font-size: 12px; display: block; }
+    .rubric-item p { color: var(--muted); font-size: 11px; margin-top: 5px; line-height: 1.5; }
+    .rubric-rating { width: 98px; padding: 9px; }
+    .two-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .stage-banner { border-radius: 12px; padding: 18px 20px; background: linear-gradient(120deg,rgba(96,224,197,.12),rgba(90,138,177,.06)); border: 1px solid rgba(96,224,197,.23); display: flex; justify-content: space-between; gap: 16px; align-items: center; margin: 4px 0 21px; }
+    .stage-banner strong { color: var(--mint); }
+    .stage-banner p { color: var(--muted); font-size: 12px; margin-top: 5px; }
+    .stage-number { color: var(--mint); background: rgba(96,224,197,.1); font-size: 12px; border: 1px solid rgba(96,224,197,.27); padding: 8px 12px; border-radius: 9px; font-weight: 850; white-space: nowrap; }
+    .highlight-panel { border: 1px solid rgba(184,169,255,.27); background: var(--purple-dim); border-radius: 12px; padding: 17px; margin-top: 18px; }
+    .highlight-panel strong { color: #d2caff; }
+    .highlight-panel p { color: #c0c8df; font-size: 12px; line-height: 1.65; margin-top: 5px; }
+    .link { color: var(--mint); text-decoration: none; }
+    .link:hover { text-decoration: underline; }
+    .readiness-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 15px; }
+    .stage-row { padding: 13px 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 13px; }
+    .stage-row:last-child { border-bottom: 0; }
+    .stage-row .stage-name { flex: 1; font-size: 12px; font-weight: 820; }
+    .stage-row .mini-track { width: 95px; height: 7px; background: #2b4355; overflow: hidden; border-radius: 99px; }
+    .stage-row .mini-track span { display: block; height: 100%; border-radius: inherit; background: var(--mint); }
+    .stage-row .pct { color: var(--muted); width: 38px; text-align: right; font-size: 11px; font-variant-numeric: tabular-nums; }
+    .timeline { display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); gap: 7px; }
+    .time-step { border: 1px solid var(--border); background: #12273a; padding: 12px; border-radius: 9px; }
+    .time-step strong { font-size: 12px; color: var(--mint); display: block; margin-bottom: 6px; }
+    .time-step span { font-size: 11px; color: var(--muted); display: block; line-height: 1.5; }
+    .footnote { margin-top: 26px; color: var(--quiet); font-size: 11px; line-height: 1.7; }
+    #toast { position: fixed; bottom: 18px; right: 18px; background: #16382f; border: 1px solid #398876; color: #d9fff4; padding: 11px 16px; border-radius: 10px; box-shadow: var(--shadow); font-size: 12px; font-weight: 780; max-width: min(360px,90vw); z-index: 100; opacity: 0; transform: translateY(12px); pointer-events: none; transition: .18s; }
+    #toast.show { opacity: 1; transform: translateY(0); }
+    @media (max-width: 1120px) {
+      .app { grid-template-columns: 225px minmax(0,1fr); }
+      .problem-grid { grid-template-columns: 1fr; }
+      .problem .textarea { min-height: 64px; }
+      .stats { grid-template-columns: repeat(2,minmax(0,1fr)); }
+      .timeline { grid-template-columns: repeat(3,minmax(0,1fr)); }
+    }
+    @media (max-width: 780px) {
+      .app { display: block; }
+      .rail { position: relative; height: auto; overflow: visible; padding: 12px; gap: 12px; }
+      .brand { padding: 3px 5px 10px; }
+      .logo { width: 36px; height: 36px; }
+      .nav { flex-direction: row; overflow-x: auto; padding-bottom: 5px; }
+      .nav a { flex: 0 0 auto; padding: 8px 10px; }
+      .nav .nav-status { display: none; }
+      .rail-label, .rail-footer { display: none; }
+      .topbar { padding: 12px 18px; }
+      .top-meta { justify-content: flex-end; }
+      .pill { padding: 6px 8px; }
+      .content { padding: 24px 15px 65px; }
+      .page-intro { flex-direction: column; }
+      .subgrid, .readiness-grid { grid-template-columns: 1fr; }
+      .timeline { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    }
+    @media (max-width: 460px) {
+      .stats { gap: 8px; }
+      .stat { padding: 12px; }
+      .stat-v { font-size: 22px; }
+      .card { padding: 15px; }
+      .two-fields { grid-template-columns: 1fr; }
+      .stage-banner { flex-direction: column; align-items: flex-start; }
+    }
+    @media print {
+      :root { color-scheme: light; }
+      body { background: white; color: #162b3a; }
+      .app { display: block; }
+      .rail, .topbar, .intro-actions, .btn, .rail-footer { display: none !important; }
+      .content { max-width: 100%; padding: 15px; }
+      .card, .stat, .stage-banner { break-inside: avoid; box-shadow: none; background: white; color: #162b3a; border: 1px solid #aaa; }
+      .lead, .check-desc, .rubric-item p, .stat-k, .stat-foot, .tiny, .field-note { color: #4a5964; }
+      .input, .textarea, .select { background: white; color: #162b3a; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
+
+    /* Coach Blueprint, comparative workbench and pitch lab (v2). */
+    .mentor-hero { border:1px solid rgba(96,224,197,.32); border-radius:16px; padding:22px; background:radial-gradient(circle at 90% 0,rgba(96,224,197,.14),transparent 48%),linear-gradient(120deg,#17354a,#102336); margin-bottom:19px; }
+    .mentor-hero h2 { font-size:24px; margin:7px 0 8px; }
+    .mentor-hero p { color:var(--muted); font-size:13px; max-width:840px; line-height:1.7; }
+    .mentor-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+    .coach-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:15px; }
+    .coach-grid.three { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .coach-box { background:#10283b; border:1px solid #345069; padding:16px; border-radius:12px; min-width:0; }
+    .coach-box.gold { border-color:rgba(255,200,128,.4); background:rgba(255,200,128,.055); }
+    .coach-box h3 { margin:0 0 8px; color:var(--mint); }
+    .coach-box.gold h3 { color:var(--amber); }
+    .coach-box p, .coach-box li { font-size:12px; color:var(--muted); line-height:1.7; }
+    .coach-box ul { padding-left:18px; margin:7px 0 0; }
+    .coach-box .bodycopy { font-size:12px; color:#deedf5; line-height:1.75; white-space:pre-wrap; overflow-wrap:anywhere; }
+    .instruction { border-left:3px solid var(--mint); padding:10px 14px; background:rgba(96,224,197,.06); border-radius:0 9px 9px 0; margin:12px 0; font-size:12px; color:#cfeced; line-height:1.7; }
+    .mono-prompt { background:#071a2b; border:1px solid #335268; border-radius:9px; padding:15px; font:12px/1.72 ui-monospace,SFMono-Regular,Consolas,monospace; white-space:pre-wrap; word-break:break-word; max-height:310px; overflow:auto; color:#d7e5ef; }
+    .comparison { display:grid;grid-template-columns:1fr 1fr; gap:14px; align-items:stretch; }
+    .side-label { color:var(--quiet);text-transform:uppercase;letter-spacing:.1em;font-size:10px;font-weight:860;margin-bottom:7px; }
+    .mentor-tag { display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:850;color:var(--amber);border:1px solid rgba(255,200,128,.3);border-radius:999px;padding:5px 10px;background:var(--amber-dim); }
+    .p-card { text-align:left; border-radius:12px; border:1px solid #345069; background:#0e2538; padding:15px; }
+    .p-card h3 { color:#edfbff; }
+    .p-card p { color:var(--muted);font-size:12px;line-height:1.65;margin-top:6px; }
+    .persona-tag { margin-top:8px;display:inline-flex;font-size:10px; color:var(--mint); }
+    .mini-list { display:grid;gap:8px; }
+    .mini-list-item { display:flex;gap:10px;align-items:start;padding:10px;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;line-height:1.5; }
+    .mini-list-item .status { flex:0 0 19px; font-weight:800;color:var(--amber); }
+    .mini-list-item.yes .status { color:var(--mint); }
+    .small-alert { font-size:11px; color:var(--amber); line-height:1.6;margin-top:8px; }
+    .score-chip { border:1px solid var(--border2); padding:7px 10px;border-radius:7px;color:var(--muted);font-size:11px;font-weight:800; }
+    .stepper { display:grid;grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:16px 0; }
+    .stepper .s { padding:15px;border:1px solid var(--border);background:#12283d;border-radius:10px; }
+    .stepper .s b { font-size:12px;color:var(--mint);display:block;margin-bottom:5px; }
+    .stepper .s span {font-size:11px;color:var(--muted);line-height:1.55;display:block;}
+    .slide-grid { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px; }
+    .slide-card { min-height:164px;border:1px solid var(--border2);background:linear-gradient(135deg,#182f43,#0d2234);border-radius:12px;padding:17px; }
+    .slide-card small { color:var(--amber);font-weight:850;letter-spacing:.07em; }
+    .slide-card h3 { margin:8px 0 5px;color:#ecf7fa; }
+    .slide-card p { font-size:12px;color:var(--muted);line-height:1.6; }
+    .pitch-choice { display:flex;gap:8px; flex-wrap:wrap; }
+    .pitch-choice button[aria-pressed="true"] {background:var(--mint);color:#092d26;border-color:var(--mint);}
+    .flow-preview { display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px; }
+    .flow-screen { border-radius:11px; border:1px solid #345268;background:#0e263a;padding:13px; min-height:140px; }
+    .flow-screen strong { color:var(--mint);font-size:12px; }
+    .flow-screen p { margin:8px 0 12px;color:var(--muted);font-size:11px;line-height:1.55; }
+    .fake-cta { display:block; padding:7px 9px; color:#07241e; background:var(--mint);border-radius:7px;font-size:10px;font-weight:800; }
+    .tag-row { display:flex; flex-wrap:wrap; gap:7px; margin:8px 0 15px; }
+    .rubric-meter { display:flex;align-items:center;gap:10px; }
+    .rubric-meter .progress-track { flex:1; }
+    .meta-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr));gap:12px; }
+    .muted-text {font-size:12px; color:var(--muted);line-height:1.7;}
+    .cap-word {font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;color:var(--mint);}
+    @media(max-width:1000px){.coach-grid.three,.slide-grid{grid-template-columns:repeat(2,minmax(0,1fr));}.stepper,.flow-preview{grid-template-columns:repeat(2,minmax(0,1fr));}}
+    @media(max-width:640px){.coach-grid,.coach-grid.three,.comparison,.slide-grid,.stepper,.flow-preview,.meta-grid{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <aside class="rail" aria-label="Primary navigation">
+    <div class="brand"><div class="logo" aria-hidden="true">PS</div><div><div class="brand-name">PSU Panthers</div><div class="brand-sub">Hackathon command center</div></div></div>
+    <div>
+      <div class="rail-label">Competition workflow</div>
+      <nav class="nav" id="navigation" aria-label="Sections"></nav>
+    </div>
+    <div class="rail-footer">
+      <div class="rail-note"><strong style="color:#d4e3ec">Private by default.</strong> Entries save in this browser only. Export your progress to move it between laptops or keep a backup.</div>
+      <button type="button" class="rail-btn" data-action="export-json">↓ Export progress (.json)</button>
+      <button type="button" class="rail-btn" data-action="import-json">↑ Import progress (.json)</button>
+      <button type="button" class="rail-btn" data-action="export-md">↓ Download team report (.md)</button>
+      <button type="button" class="rail-btn" data-action="reset">↻ Reset all practice data</button>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar">
+      <div><div class="event-line">2026 BE Smart HBCU Hackathon · Toyota</div><div class="event-sub">Six-hour innovation sprint</div></div>
+      <div class="top-meta"><span class="pill" id="top-challenge">No challenge selected</span><span class="pill mint" id="save-status" aria-live="polite">● Saved locally</span></div>
+    </header>
+    <div class="content" id="app-content" tabindex="-1"></div>
+  </main>
+</div>
+<input id="import-file" type="file" accept=".json,application/json" hidden>
+<div id="toast" role="status" aria-live="polite"></div>
+<script>
+(function () {
+  'use strict';
+
+  // The selection matrix and stage checklists below are COACHING tools,
+  // not the unpublished official 17-criterion PERFCT rubric.
+  const KEY = 'psu-panthers-hackathon-coach-v1';
+  const VERSION = 1;
+  const FACTORS = [
+    {label:'Can we build a working prototype in time?',weight:30,tip:'A complete MVP within the six-hour competition, including testing.'},
+    {label:'Opportunity for innovation',weight:20,tip:'A meaningful differentiator, not just a generic chatbot or directory.'},
+    {label:'Potential user or business impact',weight:20,tip:'A specific user benefit and a plausible measure of success.'},
+    {label:'Technical feasibility and data availability',weight:15,tip:'Accessible APIs, data, deployment tools, and manageable technical risk.'},
+    {label:'Strength of live demonstration',weight:10,tip:'A clear before-and-after user journey that judges can see working.'},
+    {label:'Team skills and familiarity',weight:5,tip:'Matches the skills and tools available to the student team.'}
+  ];
+  const STAGES = [
+    {id:'empathy',num:'01',name:'Empathy Map',verb:'Understand the people',sub:'Symbiotic Empathy / SEM',
+      intro:'Define the real user and their need before proposing a solution. Record evidence and distinguish it from assumptions.',
+      output:'A clearly framed problem and research-grounded personas in SymStudio.',
+      tasks:[
+        ['frame','Write the user problem in plain language','Include who is affected, what goes wrong, and why it matters.',true],
+        ['stakeholders','Identify primary users and decision-makers','The product user may be different from the person who approves adoption.',true],
+        ['personas','Create and refine at least two distinct personas','Include user goals, pain points, context, and current alternatives.',true],
+        ['evidence','Attach credible evidence or feedback','Use challenge facts, accessible research, or clearly attributed coach feedback.',true],
+        ['assumptions','Mark assumptions separately from validated facts','Do not present invented personas or AI-generated quotes as real interviews.',true],
+        ['sym-save','Save or confirm the Empathy/SEM work in SymStudio','Check that judges or facilitators can inspect the process artifact.',true],
+        ['coach','Ask the Toyota coach whether the user definition is credible','Capture any correction that changes the problem framing.',false]
+      ],
+      rubric:[
+        ['framing','Problem clarity','A 5 identifies a specific person, context, problem, and consequence.'],
+        ['depth','Empathy depth','A 5 uses distinct, realistic personas with explicit needs and pain points.'],
+        ['support','Evidence and honesty','A 5 separates verified evidence, coach feedback, and assumptions.'],
+        ['priority','Focus on the right need','A 5 shows which unmet need matters most and why.']
+      ],
+      evidencePrompt:'Primary user; two persona summaries; important pain points; evidence/source; what we still need to validate.',
+      coachPrompt:'What did the Toyota coach confirm or challenge about the user problem?',
+      reminder:'In the official screenshot, “Empathy Depth — SEM” appears under The Loop. The criteria on this page are our coaching breakdown, not the official scoring formula.'
+    },
+    {id:'signal',num:'02',name:'Signal',verb:'Define a strategic direction',sub:'Evidence → insight → How Might We',
+      intro:'Turn research and personas into a defensible, focused direction. A strong Signal should narrow the opportunity rather than merely repeat the original challenge.',
+      output:'A documented insight, strategic direction, and focused How Might We (HMW) question.',
+      tasks:[
+        ['sources','Review the challenge facts and available sources','Use credible, relevant evidence; note where a claim comes from.',true],
+        ['patterns','Record two or three meaningful themes or insights','Explain what matters across the users or data, not just what was observed.',true],
+        ['prioritize','Select the highest-value problem opportunity','Explain the severity, frequency, and feasibility of addressing it.',true],
+        ['hmw','Write a focused How Might We question','Specific enough to guide solutions but broad enough for innovation.',true],
+        ['outcome','Specify a measurable success outcome','Examples: steps saved, time reduced, errors prevented, access improved.',true],
+        ['direction','Save the selected strategic direction in SymStudio','Confirm the Signal stage reflects the team’s actual decision.',true],
+        ['coach','Validate the direction with Toyota coach feedback','Record constraints or stakeholder priorities learned from the coach.',false]
+      ],
+      rubric:[
+        ['rigor','Research rigor','A 5 uses relevant, attributable evidence rather than unsupported claims.'],
+        ['insight','Insight quality','A 5 turns research into a non-obvious, actionable observation.'],
+        ['hmw','HMW / direction quality','A 5 yields a focused question that directly guides ideation.'],
+        ['outcome','Impact measurability','A 5 defines an observable outcome and who benefits.']
+      ],
+      evidencePrompt:'Best research signals; linked sources; strategic direction; exact HMW question; intended measurable outcome.',
+      coachPrompt:'Which real-world constraints or objectives did the Toyota coach identify?',
+      reminder:'The judge screenshot visibly includes “Signal Rigor” within The Loop. Strong reasoning matters more than large quantities of text.'
+    },
+    {id:'synthesize',num:'03',name:'Synthesize',verb:'Explore and improve ideas',sub:'Creative Direction · generation · Idea Fusion',
+      intro:'Generate genuinely different concepts, guide idea generation with constraints, and combine complementary approaches where the fusion improves user value.',
+      output:'Several meaningfully different ideas, a recorded Creative Direction, and a useful fusion or documented refinement.',
+      tasks:[
+        ['alternatives','Generate several genuinely distinct concepts','As a practice target, aim for 4–8 distinct approaches, not near-duplicates.',true],
+        ['creative','Use Creative Direction to guide the concept space','Include user impact, hackathon time limits, data availability, and differentiators.',true],
+        ['diversity','Consider alternative technical approaches','Example: workflow automation, search, analytics, coordination, recommendation.',true],
+        ['fusion','Use Idea Fusion when it improves a concept','Explain which two ideas were combined and what new value was created.',true],
+        ['tradeoffs','Identify an advantage and technical risk for leading ideas','Avoid choosing solely on visual appeal or buzzwords.',true],
+        ['sym-save','Save the generated and refined idea set in SymStudio','Confirm the ideas, any fused concept, and rationale remain visible.',true],
+        ['feasible','Reject impractical features before moving ahead','Avoid dependencies on unavailable proprietary data or hardware.',false]
+      ],
+      rubric:[
+        ['range','Idea diversity','A 5 includes truly distinct solution mechanisms.'],
+        ['creative','Creative Direction quality','A 5 sets thoughtful constraints tied to the problem and six-hour limit.'],
+        ['fusion','Quality of synthesis / fusion','A 5 creates clear additional value by combining or improving ideas.'],
+        ['risk','Technical and user trade-offs','A 5 shows informed judgment about viability and user benefit.']
+      ],
+      evidencePrompt:'Creative Direction used; strongest 4–8 concepts; fusion inputs and output; differentiators; major risks.',
+      coachPrompt:'What alternative did the Toyota coach find most valuable, and what did they challenge?',
+      reminder:'SymStudio offers Creative Direction and Idea Fusion, but public material does not guarantee points per action. Use them for better ideas, not repetitive point farming.'
+    },
+    {id:'select',num:'04',name:'Select',verb:'Choose the winning concept',sub:'Compare alternatives · commit to a viable MVP',
+      intro:'Select the solution that best balances problem fit, originality, measurable impact, and build feasibility within the remaining time.',
+      output:'A selected concept supported by a clear trade-off analysis and an achievable MVP scope.',
+      tasks:[
+        ['shortlist','Shortlist the strongest three concepts where available','Make sure the concepts solve the same core problem.',true],
+        ['compare','Compare impact, differentiation, and effort','Use consistent factors rather than intuition alone.',true],
+        ['dependencies','Check data, APIs, hardware, hosting, and permissions','Flag any dependency that could break the live demo.',true],
+        ['mvp','Choose a single core end-to-end user journey','Scope should fit a realistic development and testing window.',true],
+        ['rationale','Record why the final concept beat alternatives','Name at least one trade-off or rejected idea.',true],
+        ['sym-save','Save the selected finalist in SymStudio','Confirm the chosen concept flows into Shape.',true],
+        ['coach','Ask for a quick Toyota-coach feasibility check','Do not let prolonged debate consume the build window.',false]
+      ],
+      rubric:[
+        ['fit','Problem-solution fit','A 5 directly addresses the validated user need.'],
+        ['choice','Decision rationale','A 5 uses explicit comparison rather than preference alone.'],
+        ['feasibility','Six-hour feasibility','A 5 is demonstrably buildable with available tools and data.'],
+        ['risk','Risk-awareness','A 5 avoids critical dependencies and has a fallback plan.']
+      ],
+      evidencePrompt:'Three finalists; comparison factors; chosen concept; rejected alternative; main demo workflow; critical risks.',
+      coachPrompt:'What did the Toyota coach say about feasibility, cost, or decision-maker value?',
+      reminder:'This stage is separate from the initial selection among the THREE OFFICIAL CHALLENGES. Here you are selecting the best product IDEA for the chosen challenge.'
+    },
+    {id:'shape',num:'05',name:'Shape',verb:'Specify and ship the MVP',sub:'PRD → implementation → validation',
+      intro:'Generate an implementation-ready product requirements document (PRD). Then use it to build and verify a real application; document what is complete and what is still a prototype.',
+      output:'A complete SymStudio PRD, a stable working prototype, and a clear technical/demo handoff.',
+      tasks:[
+        ['prd','Generate and review the PRD in SymStudio','Capture the selected problem, users, solution, and requirements.',true],
+        ['scope','Separate MUST-HAVE MVP features from future enhancements','Keep the MVP focused on one valuable end-to-end journey.',true],
+        ['flows','Specify user flow and acceptance criteria','Define the input, expected action, and visible result.',true],
+        ['tech','Document architecture, data, APIs, and constraints','Mention privacy, reliability, and operational assumptions.',true],
+        ['origin','Capture the Origin Prompt or build handoff if available','Carry only required context into the approved build tool.',true],
+        ['build','Implement the core working prototype','Demonstrate functioning features, not disconnected mockups.',true],
+        ['test','Run and document end-to-end and error-case tests','Confirm real inputs produce expected outputs.',true],
+        ['links','Record live demo URL, code repository, and README','Make sure judges can access what the rules require.',true],
+        ['pitch','Prepare a decision-ready summary and specific next step','Who would approve a pilot, what risk remains, and what success means?',false]
+      ],
+      rubric:[
+        ['prd','PRD completeness','A 5 has clear requirements, realistic scope, and testable acceptance criteria.'],
+        ['implementation','Working product','A 5 supports the complete primary workflow end to end.'],
+        ['technical','Technical credibility','A 5 can explain the architecture, data handling, and limitations.'],
+        ['validation','Testing and demo readiness','A 5 includes verified functionality, error handling, and a stable demo.']
+      ],
+      evidencePrompt:'PRD link/summary; MUST-HAVE features; architecture; acceptance tests; completed functions; known limitations; measurable impact.',
+      coachPrompt:'Would the Toyota coach endorse this for a controlled pilot? What would be required next?',
+      reminder:'The PRD is produced in SymStudio; coding, deployment, and README may happen in a separate approved tool. Those later tasks support The Build and final presentation.'
+    }
+  ];
+  const READINESS = [
+    {id:'build',name:'The Build — technical and impact',description:'Publicly shown as 35% in the demonstrated PERFCT interface; the list below is a preparation checklist, not a reproduction of all official criteria.',items:[
+      ['end2end','Core user journey works from start to finish'],
+      ['realistic','Demo uses realistic, clearly labeled inputs or test data'],
+      ['failure','Critical errors and empty states handled gracefully'],
+      ['impact','Impact claim has evidence or is labeled as a target'],
+      ['repo','README, architecture, and code access prepared']
+    ]},
+    {id:'room',name:'The Room — decision-ready pitch',description:'AaaS-inspired coaching targets. Official names and category weight were not confirmed from the provided screenshots.',items:[
+      ['audience','State who uses the product and who approves a pilot'],
+      ['language','Connect benefits to the organization’s goals'],
+      ['proof','Demonstrate the product instead of relying on claims'],
+      ['risk','Identify meaningful risks and mitigation steps'],
+      ['ask','End with a concrete, low-risk next decision or pilot request']
+    ]},
+    {id:'submit',name:'Submission and team handoff',description:'Follow the actual organizer instructions for required submissions and deadline.',items:[
+      ['rules','Read the official challenge and judging guide again'],
+      ['links','Verify working deployment URL from another device'],
+      ['source','Confirm required repository, documents, and artifacts are accessible'],
+      ['backup','Have a permitted backup demo and screenshots'],
+      ['roles','Every presenter knows their part and can answer technical questions'],
+      ['submit','Submit all official deliverables before the deadline']
+    ]}
+  ];
+
+
+  // Contextual mentor examples are deterministic, offline scaffolds. They are NOT
+  // an LLM inference, verified research, or the official PERFCT judging rubric.
+  const DOMAINS = [
+    {id:'food',rx:/food|groc|meal|nutri|hunger|desert|pantr|produce/i,sector:'food access',user:'resident with limited affordable food access',approver:'community program director',goal:'find an affordable and accessible food option',constraint:'travel distance, budget, and changing inventory',metric:'time or total cost per usable food option',product:'AccessBasket',feature:'budget-and-travel-aware food option planner',data:'sample stores, indicative prices, transit modes, and availability flags',risk:'prices and inventory may be outdated',action:'enter a budget, area, and transportation choice',result:'receive a ranked food option with an understandable next step',alts:['Affordable store and pantry map','Budget-aware meal and shopping planner','Community food pickup coordinator']},
+    {id:'work',rx:/hiring|hire|job|recruit|career|staff|workforce|talent|partner|onboard/i,sector:'hiring and partnerships',user:'candidate or community partner seeking a clear pathway',approver:'talent acquisition or partnership lead',goal:'find the right opportunity and next step',constraint:'eligibility, missing information, and privacy requirements',metric:'time to a qualified match or completed inquiry',product:'PathwayMatch',feature:'transparent opportunity matching and next-step guidance',data:'sample opportunity profiles, criteria, applications, and status updates',risk:'outdated opportunities, bias, or inappropriate handling of applicant data',action:'enter skills, needs, and eligibility preferences',result:'see qualified options, reasons for a match, and a clear inquiry action',alts:['Searchable partner and job directory','Eligibility and opportunity match assistant','Status and follow-up coordination dashboard']},
+    {id:'transport',rx:/mobility|traffic|transport|transit|route|vehicle|fleet|commut|parking|logistic|deliver/i,sector:'mobility and logistics',user:'person planning or managing a time-sensitive trip',approver:'operations or mobility program lead',goal:'choose a dependable and efficient route or service',constraint:'travel variability, service gaps, and incomplete data',metric:'time saved, missed connections, or delivery reliability',product:'RouteReady',feature:'constraint-aware trip or task recommendation',data:'sample routes, estimated travel times, service windows, and alerts',risk:'unreliable live location or schedule information',action:'enter an origin, destination, and time constraint',result:'view a prioritized route with assumptions and a fallback option',alts:['Route discovery and comparison tool','Constraint-aware route recommender','Service disruption and coordination workflow']},
+    {id:'education',rx:/student|school|learn|educat|scholar|college|campus|advisor|course|tutor/i,sector:'student success',user:'student needing timely and actionable guidance',approver:'student services or academic program leader',goal:'identify and complete the next helpful step',constraint:'fragmented information and limited staff capacity',metric:'task completion time or successful referrals',product:'NextStepU',feature:'personalized, explainable student action navigator',data:'sample resources, deadlines, eligibility rules, and support pathways',risk:'outdated requirements or private student information',action:'choose a goal and describe the current barrier',result:'receive a prioritized plan, resource, and confirmation of the next action',alts:['Resource and deadline finder','Personalized action-plan builder','Advisor referral and status tracker']},
+    {id:'manufacturing',rx:/toyota|manufactur|factory|assembly|production|supply chain|quality control|maintenance|defect|machine|automotive/i,sector:'operations and manufacturing',user:'frontline worker diagnosing a workflow problem',approver:'plant supervisor or operations manager',goal:'resolve a process issue quickly and consistently',constraint:'safety rules, limited data, and operational interruptions',metric:'resolution time, rework, or preventable process errors',product:'OpsSignal',feature:'guided issue triage with an auditable next step',data:'sample issue categories, approved procedures, priority rules, and event records',risk:'unsafe recommendations or unverified operational procedures',action:'select an issue type and observed symptoms',result:'receive a safe, prioritized next step and an escalation path',alts:['Issue reporting dashboard','Guided workflow triage assistant','Process pattern and escalation analyzer']},
+    {id:'health',rx:/health|clinic|patient|medical|wellness|care|pharm|hospital/i,sector:'service access and health',user:'person navigating a confusing service or resource',approver:'service administrator or program manager',goal:'identify a trustworthy service option and next step',constraint:'availability, eligibility, and sensitive personal information',metric:'referral completion or time to an appropriate resource',product:'CarePath',feature:'service navigation with eligibility and clear next steps',data:'sample publicly available resources, hours, service rules, and contacts',risk:'privacy or unsupported medical recommendations',action:'choose the type of help needed and relevant non-sensitive constraints',result:'see eligible resource options and the next contact action',alts:['Resource discovery tool','Eligibility-aware service navigator','Referral coordination tracker']},
+    {id:'climate',rx:/energy|solar|climate|sustain|waste|water|environment|emission|recycl/i,sector:'sustainability',user:'resident or staff member trying to reduce wasted resources',approver:'sustainability or facilities program lead',goal:'identify a feasible, measurable improvement',constraint:'limited resources and uncertain baseline data',metric:'resource savings per documented action',product:'ImpactPilot',feature:'action prioritization with transparent estimated impact',data:'sample baseline usage, action catalog, assumptions, and progress records',risk:'unverified savings estimates or inconsistent measurements',action:'choose a goal and baseline resource constraint',result:'receive a prioritized action and tracking method',alts:['Resource information explorer','Action and impact prioritizer','Progress and accountability dashboard']},
+    {id:'service',rx:/customer|support|service|complaint|request|contact|incident|issue|ticket/i,sector:'service operations',user:'customer or frontline agent needing a clear resolution',approver:'service operations manager',goal:'resolve a request transparently and efficiently',constraint:'handoffs, inconsistent information, and long response times',metric:'time to resolution or first-contact completion',product:'ClearCase',feature:'intake, next-best-action, and status tracking workflow',data:'sample request types, triage rules, response templates, and status history',risk:'misrouting and privacy of submitted information',action:'describe the problem and choose the relevant category',result:'see a recommended action, owner, and progress confirmation',alts:['Self-service help finder','Guided request triage assistant','Case tracking and escalation board']},
+    {id:'general',rx:/.*/i,sector:'this challenge',user:'person most directly affected by the problem',approver:'organization leader authorized to approve a pilot',goal:'complete the key task with fewer barriers',constraint:'time, data access, cost, privacy, and adoption',metric:'time, errors, cost, or completion rate for the core task',product:'PantherPilot',feature:'focused guided workflow with a visible next step',data:'a clearly labeled synthetic dataset representing the real workflow',risk:'unvalidated assumptions or unreliable production data',action:'enter the minimum information needed to describe the task',result:'receive an actionable recommendation and documented confirmation',alts:['Clear searchable resource finder','Guided workflow and matching assistant','Status and follow-up coordination tool']}
+  ];
+  const PROFILE_FIELDS = [
+    ['user','Primary product user','Who will directly use the product?'],
+    ['approver','Decision-maker / approver','Who can authorize a pilot or adoption?'],
+    ['goal','Outcome / job to be done','What must the user accomplish?'],
+    ['constraint','Main constraint or risk','Data access, time, budget, safety, privacy...'],
+    ['metric','Success metric','What result would be measured in a pilot?']
+  ];
+  function selectedProblem(){return state.selected===null?null:state.problems[state.selected];}
+  function selectedProfile(){return state.selected===null?null:state.profiles[state.selected];}
+  function getContext(){
+    const p=selectedProblem(),profile=selectedProfile();
+    const title=p?.title?.trim()||'the chosen challenge';
+    const brief=p?.brief?.trim()||'The exact challenge statement has not yet been pasted. Use the organizer wording before copying prompts.';
+    const all=title+' '+brief;
+    const domain=DOMAINS.find(d=>d.rx.test(all))||DOMAINS[DOMAINS.length-1];
+    const person=profile||{};
+    return {selected:!!p, title,brief,domain, user:person.user?.trim()||domain.user,approver:person.approver?.trim()||domain.approver,
+      goal:person.goal?.trim()||domain.goal,constraint:person.constraint?.trim()||domain.constraint,metric:person.metric?.trim()||domain.metric,
+      product:domain.product,feature:domain.feature,persona:person.persona||'0',altPersona:person.altPersona||'2'};
+  }
+  function personas(c){return [
+    {role:c.user,kind:'Primary user',detail:`Needs to ${c.goal}. Likely barriers: ${c.constraint}. Assumed until validated with research or an actual user.`},
+    {role:'frontline staff member / service coordinator',kind:'Workflow partner',detail:`Helps the primary user accomplish the task. Needs accurate information, simple handoffs and a clear exception path; validate whether this role exists.`},
+    {role:c.approver,kind:'Decision maker',detail:`Must justify value using ${c.metric}, understand exposure and decide whether a low-risk pilot is warranted.`}
+  ];}
+  function guideFor(id,c){
+    const a=c.domain.alts;
+    const ideas=`A. ${a[0]} — simplest path; easy to build but risks being generic.\nB. ${a[1]} — stronger personalized value; requires clear inputs and rules.\nC. ${a[2]} — supports team or organizational handoff; involves more state and testing.`;
+    const hmw=`How might we help ${c.user} ${c.goal} despite ${c.constraint}, while making ${c.metric} observable?`;
+    const base=`Official problem: "${c.title}"\n${c.brief}\nPrimary user: ${c.user}\nDecision-maker: ${c.approver}\nGoal: ${c.goal}\nPrimary constraint: ${c.constraint}\nSuccess measure: ${c.metric}`;
+    if(id==='empathy')return {
+      location:'SymStudio → open your challenge → Empathy Map. Enter the official problem or persona facts in the available context/persona fields, then use the persona-generation action. If it uses separate fields, distribute the information; do not paste a long prompt into an unrelated box.',
+      actions:['Enter the challenge in the available context window; keep the original problem wording.','Generate personas, read each one, and reject any that are off-target.','Prioritize the person doing the task. Also identify the approver; do not confuse sponsor with daily user.','Add goals, pains, current workarounds, and explicitly mark unanswered questions.','Save/confirm the Empathy artifact in SymStudio.'],
+      prompt:`${base}\nCreate three HYPOTHETICAL personas: (1) primary end user, (2) workflow partner, and (3) decision maker. For each provide goal, context, frustration, current workaround, success criterion, and 2 interview questions. Never invent interview quotes or claim that these personas were validated. Recommend which persona is primary and justify your choice.`,
+      model:`Problem framing: ${c.user} needs to ${c.goal}, but is constrained by ${c.constraint}. The adoption decision is likely to involve ${c.approver}.\n\nPrimary persona: ${c.user} — job to be done: ${c.goal}; pain: ${c.constraint}; success: can take a useful next action.\nSecondary persona: a workflow partner who supplies or validates information and handles exceptions.\nApprover persona: ${c.approver}, focused on ${c.metric}, risk, operational fit, and a limited pilot.\n\nEvidence status: hypotheses only. Validate with challenge text, credible sources and Toyota coach. Two key questions: How often does the barrier occur? What decision can the user not make today?`,
+      keys:[['Named primary user',/user|persona|resident|student|customer|worker|driver|staff|partner|employee|patient/i],['Concrete pain or need',/pain|need|barrier|frustrat|problem|challenge|difficult|constraint/i],['At least one real-world context',/context|today|currently|workflow|when|situation|existing/i],['Evidence separated from assumptions',/source|evidence|research|assum|validate|interview|feedback/i],['Approver or partner considered',/approv|manager|leader|partner|decision|admin|director/i]]
+    };
+    if(id==='signal')return {
+      location:'SymStudio → Signal. Add attributable sources in Team Research/Research Library when available. Use the Signal/Direction selection interface to record the insight and How Might We statement.',
+      actions:['Read the source details in the challenge and team research; label assumptions.','Look for one pattern that affects the primary user and one barrier to adoption.','Write a focused How Might We question tied to the user and measurable result.','Set creative direction constraints, then save/select the official Signal.'],
+      prompt:`${base}\nFrom only the attached/entered evidence, separate facts, assumptions and unknowns. Generate 3 potentially useful signals, a single prioritized strategic direction, and one precise "How Might We" question. Name a baseline to measure and identify what evidence a Toyota coach should verify. Do not manufacture statistics.`,
+      model:`Candidate signal 1 (hypothesis): ${c.constraint} causes avoidable friction for ${c.user}.\nCandidate signal 2 (hypothesis): a single guided decision could help ${c.user} ${c.goal}.\nCandidate signal 3 (hypothesis): ${c.approver} will need transparent evidence of ${c.metric} before adoption.\n\nStrategic direction: simplify the most consequential decision before adding broad features.\nHow Might We: ${hmw}\n\nValidate: find a trustworthy baseline, interview/coach confirmation, or existing workflow example; otherwise label metrics as targets.`,
+      keys:[['Research or evidence recognized',/research|source|evidence|data|fact|assum|validate/i],['Actionable insight or pattern',/insight|signal|pattern|barrier|root cause/i],['How Might We question',/how might we|hmw/i],['Focused strategic direction',/direction|focus|priorit|opportunity|target/i],['Measurable result',/measure|metric|time|cost|error|rate|success|saving/i]]
+    };
+    if(id==='synthesize')return {
+      location:'SymStudio → Synthesize. Find idea-generation and Creative Direction controls. For Idea Fusion, select two genuinely complementary generated idea cards, then use the available Fuse action.',
+      actions:['Generate 6–8 genuinely different options; do not rely on duplicates.','Add Creative Direction with the six-hour prototype and data constraints.','Choose two distinct useful mechanisms and fuse them when the combination improves user value.','Keep 3 finalists and record what makes each different.'],
+      prompt:`${base}\nHow Might We: ${hmw}\nGenerate 8 genuinely distinct digital solutions, not cosmetic variations. Include a low-risk MVP, a workflow coordinator, an evidence dashboard, an explainable recommendation, and one unusual but practical idea. For each list user value, demo path, data needs and failure risk. Then propose a meaningful fusion of the two strongest complementary ideas for a six-hour hackathon.`,
+      model:`Creative Direction: "Prioritize one explainable, reliable user outcome; accessible or synthetic data; no proprietary integrations; clear UX; buildable in 2–3 hours and demonstrable end to end."\n\nThree starter concepts:\n${ideas}\n\nExpert fusion: combine option A's discoverability with option B's constraint-aware guidance. Working concept: ${c.product}, a ${c.feature}.\n\nDifferentiator: help the user decide and act, not merely browse. Reject features that cannot be tested in the time available.`,
+      keys:[['Multiple distinct ideas',/idea|option|alternative|concept|approach/i],['Creative Direction constraints',/creative|direction|constrain|scope|hour|feasib/i],['Meaningful fusion or synthesis',/fusion|fuse|combin|synthes|merge/i],['Differentiation and value',/different|innov|value|benefit|unique|impact/i],['Risks and trade-offs',/risk|tradeoff|trade-off|data|api|limitation/i]]
+    };
+    if(id==='select')return {
+      location:'SymStudio → Select. Select and compare finalists with the stage’s rating/choice controls. Confirm the chosen idea is the one passed forward into Shape.',
+      actions:['Compare the strongest 3 concepts using the same criteria.','Ask: What exact demo can be completed in the remaining time?','Avoid concepts dependent on unavailable data, authorization or hardware.','Commit to one winning concept; document the second-best rejected alternative.'],
+      prompt:`${base}\nCompare these 3 solution directions:\n${ideas}\nUse the same criteria for each: problem fit, user value, originality, six-hour feasibility, data access, demo quality, and risk. State an explicit choice, rejected alternative, and one end-to-end journey that can be built and tested. Do not assume unverified integrations work.`,
+      model:`Recommended MVP concept (provisional): ${c.product} — ${c.feature}.\n\nWhy this concept: a single clear job (${c.goal}), a concrete observable next step, and a demo achievable with labeled sample data.\nAlternatives: a basic resource directory is easier but less differentiated; a full multi-party orchestration platform has more dependencies and is harder to test.\n\nEssential workflow: ${c.domain.action} → inspect an explainable result → choose a next action → see confirmation.\n\nGo/no-go: If critical data or rules cannot be tested, narrow to transparent sample data and state the limitation.`,
+      keys:[['Finalists compared',/compar|option|finalist|alternativ|matrix|criteria/i],['Selected concept justified',/select|choose|chose|recommend|because|rationale/i],['MVP scope stated',/mvp|must.have|core|journey|flow|scope/i],['Feasibility or dependencies checked',/feasib|api|database|data|hosting|available|hour/i],['Risks or alternatives recorded',/risk|reject|tradeoff|fallback|limitation/i]]
+    };
+    if(id==='shape')return {
+      location:'SymStudio → Shape. Generate the Product/PRD artifact from the selected finalist, review each requirement, then carry the allowed Origin Prompt/PRD into Lovable or another permitted development tool.',
+      actions:['Generate a PRD with one primary user, one job, and three to four screens.','Separate must-have from nice-to-have; remove unsupported integrations.','Define acceptance criteria for the core journey and one failure state.','Use PRD/Origin Prompt in the permitted builder; test with real clicks and representative inputs.','Save the app URL, documentation, limitations and a backup demo if allowed.'],
+      prompt:`${base}\nSelected product: ${c.product} — ${c.feature}.\nGenerate a hackathon-ready PRD: primary persona; job-to-be-done; must-have and not-now features; minimum data model; 4-screen flow; visible error states; acceptance tests; accessibility and privacy; one deployable demo scenario. Avoid invented external APIs or live integrations. Detail the decision maker's smallest safe pilot request and pilot success measure.`,
+      model:`Product: ${c.product} — ${c.feature}.\nUser story: As ${c.user}, I want to ${c.goal} so that I can take a confident next action.\n\nMUST HAVE: (1) simple intake, (2) comparison or recommendation from explicit rules and clearly labeled sample data, (3) understandable result with reason and constraint, (4) clear next action and confirmation.\nNOT NOW: accounts, payments, deep AI models, unverified real-time APIs, enterprise deployment.\nDATA: ${c.domain.data}.\nSCREENS: Start/Input → Results → Detail/Decision → Confirmation.\nTEST: typical input yields expected result; empty input is handled; impossible option shows a safe fallback.\nRISK: ${c.domain.risk}.\nPILOT: obtain permission from ${c.approver} to test with a small group; observe ${c.metric} before requesting broader adoption.`,
+      keys:[['Product requirements or scope',/prd|requirement|must.have|feature|mvp|scope/i],['Step-by-step user flow',/flow|screen|input|output|step|journey/i],['Data or architecture',/data|database|api|stack|architecture|model/i],['Acceptance testing',/test|acceptance|verify|expected|error|failure/i],['Risks and deployment next step',/risk|limitation|privacy|deploy|pilot|approval|link/i]]
+    };
+    return null;
+  }
+  function coverageFor(stageId,answer){const c=getContext(),g=guideFor(stageId,c);return g.keys.map(([name,rx])=>({name,yes:rx.test(answer||'')}));}
+  function pitchScript(c){
+    const x=state.pitch;
+    const ask=x.ask?.trim()||`Permission from ${c.approver} for a small, time-boxed pilot using approved data and a clear success measure.`;
+    const proof=x.proof?.trim()||`Our prototype demonstrates one end-to-end task. Any figures shown are sample or target values until validated.`;
+    const risk=x.risk?.trim()||`${c.domain.risk}; our mitigation is transparent assumptions, a small pilot, and validation before deployment.`;
+    const hook=x.hook?.trim()||`Imagine being ${c.user}, trying to ${c.goal}, and meeting one barrier: ${c.constraint}.`;
+    const intro=x.style==='skit'?`[Two students act a 15-second scene: one plays ${c.user}, the other a colleague. The user states the barrier in plain language. Freeze the action. Presenter says: "This is the moment our product changes."]`:
+      x.style==='video'?`[Play a 15-second captioned, original before-and-after screen recording if the rules allow it. Immediately switch to the live product. The recording is not a substitute for a functioning demo.]`:
+      x.style==='jingle'?`[A student speaks or sings a six-second ORIGINAL tagline: "See the need. Make the choice. Take the next step." No copyrighted melody. Immediately explain the problem.]`:
+      `[Start with a one-sentence user problem and a clear promise. No theatrical intro.]`;
+    return `0:00–0:20 · HOOK AND USER\n${intro}\n${hook}\n\n0:20–0:45 · SYSTEM CONTEXT\nOur challenge is: "${c.title}." The people affected are ${c.user}. The practical value is helping them ${c.goal}. For ${c.approver}, success means improving ${c.metric}.\n\n0:45–1:45 · WORKING DEMO (NO SLIDE SUBSTITUTE)\nMeet ${c.product}: a ${c.feature}. I will ${c.domain.action}; here is the actual result. ${c.domain.result}. Notice one main action, a clearly named next step, progress feedback, no surprises, and confirmation.\n\n1:45–2:15 · PROOF AND VALUE\n${proof}\nShow a working test, not a made-up statistic. Explain the baseline needed to measure ${c.metric}.\n\n2:15–2:40 · RISK, FEASIBILITY, TIMING\nWe do not claim this is production-ready. Key risk: ${risk}\nOur pilot is narrowly scoped and can use approved or labeled test data first.\n\n2:40–3:00 · EXPLICIT DECISION ASK\nToday we request: ${ask}\nThat is the smallest safe next movement. Thank you — we're ready to show the workflow again and answer technical questions.`;
+  }
+  function slidePlan(c){return [
+    ['01','The problem','One-sentence story: '+c.user+' needs to '+c.goal+'. Include one verified source or say it is a working hypothesis.'],
+    ['02','Who must decide','Primary user: '+c.user+'. Decision authority: '+c.approver+'. State what each needs.'],
+    ['03','The working product',c.product+': '+c.feature+'. Show the LIVE end-to-end user flow, not UI screenshots only.'],
+    ['04','Value & evidence','What was tested? What remains a target? Pilot success metric: '+c.metric+'. No invented ROI.'],
+    ['05','Risk & timing','Risk: '+c.domain.risk+'. Mitigation, dependencies, and an achievable pilot.'],
+    ['06','The movement requested','Ask for permission to explore or a limited pilot, not blanket adoption. Name owner, scope, timeline, success gate.']
+  ];}
+  function profileEditor(){const p=selectedProfile();if(!p)return `<div class="notice"><span class="info-dot">ⓘ</span><div>Choose one of the three challenges on <a href="#problems" class="link">Choose a Problem</a> first. The mentor examples will then use the selected challenge.</div></div>`;
+    const c=getContext();
+    return `<div class="coach-grid">${PROFILE_FIELDS.map(([id,label,hint])=>`<div class="field"><label class="label" for="meta-${id}">${esc(label)}</label><input id="meta-${id}" class="input" data-profile-field="${id}" value="${esc(p[id]||'')}" placeholder="${esc(hint+' · suggestion: '+(c[id]||''))}"><div class="field-note">Optional: this makes all mentor examples more specific. Press “Refresh coach examples” after editing.</div></div>`).join('')}</div><div class="mentor-actions"><button class="btn btn-primary" type="button" data-action="refresh-coach">Refresh coach examples →</button><a href="#empathy" class="btn btn-ghost">Start Empathy →</a></div>`;
+  }
+  function personaChooser(c){const p=selectedProfile();if(!p)return '';
+    const v=personas(c);
+    return `<div class="coach-grid three">${v.map((o,i)=>`<div class="p-card"><div class="tag-row"><span class="tag ${i===0?'mint':''}">${esc(o.kind)}</span>${i===Number(p.persona)?'<span class="tag amber">Team focus</span>':''}</div><h3>${esc(o.role)}</h3><p>${esc(o.detail)}</p><div class="persona-tag">${i===0?'Recommended starting primary':'Validate before prioritizing'}</div></div>`).join('')}</div>
+    <div class="two-fields" style="margin-top:15px"><div class="field"><label class="label" for="profile-persona">Choose the persona your product primarily serves</label><select class="select" id="profile-persona" data-profile-field="persona">${v.map((o,i)=>`<option value="${i}" ${Number(p.persona)===i?'selected':''}>${esc(o.kind)}: ${esc(o.role)}</option>`).join('')}</select></div><div class="field"><label class="label" for="profile-alt">Choose a secondary stakeholder to validate</label><select class="select" id="profile-alt" data-profile-field="altPersona">${v.map((o,i)=>`<option value="${i}" ${Number(p.altPersona)===i?'selected':''}>${esc(o.kind)}: ${esc(o.role)}</option>`).join('')}</select></div></div><p class="small-alert">These are example persona hypotheses, not validated people. If the team chooses a workflow partner or manager as its primary user, update the Primary product user field above and explain why.</p>`;
+  }
+
+  function conceptScore(a){return FACTORS.reduce((n,f,i)=>n+(Number(a?.[i]||3)*f.weight/5),0);}
+  function conceptComparison(c){
+    const mentor=state.concept.ratingsCoach,team=state.concept.ratingsTeam;
+    return `<div class="section-heading"><div><h2>Evaluate MY solution versus PSU's solution</h2><p>Score both product concepts using the same six feasibility and impact factors. Change the 3/5 provisional defaults only when you have a reason.</p></div><span class="tag amber">Comparison ≠ official PERFCT</span></div>
+    <div class="mentor-hero"><div class="coach-grid"><div><span class="cap-word">Mentor example</span><h2 style="margin:5px 0">${esc(c.product)}</h2><p>${esc(c.feature)}. Core workflow: ${esc(c.domain.action)} → ${esc(c.domain.result)}.</p><div class="stat-v green">${fmt(conceptScore(mentor))}<span class="tiny"> / 100 · team-adjustable</span></div></div><div><label class="label" for="concept-name">PSU team’s proposed product name</label><input class="input" id="concept-name" data-concept-field="name" value="${esc(state.concept.name)}" placeholder="Students: enter YOUR product name"><label class="label" for="concept-summary" style="margin-top:10px">How your solution works</label><textarea class="textarea" id="concept-summary" data-concept-field="summary" placeholder="How your approach solves the problem and differs from the mentor's idea...">${esc(state.concept.summary)}</textarea><div class="stat-v amber">${fmt(conceptScore(team))}<span class="tiny"> / 100 · team-adjustable</span></div></div></div></div>
+    <div class="card scoretable-wrapper"><table class="scoretable"><thead><tr><th>Factor / weight</th><th>Mentor example</th><th>PSU team concept</th></tr></thead><tbody>
+    ${FACTORS.map((f,j)=>`<tr><td><strong>${esc(f.label)}</strong> <span class="weight">${f.weight}%</span><span class="help">${esc(f.tip)}</span></td><td><select class="rating" data-concept-rating="coach" data-concept-factor="${j}" aria-label="Mentor concept ${esc(f.label)}">${[1,2,3,4,5].map(v=>`<option value="${v}" ${mentor[j]===v?'selected':''}>${v}/5</option>`).join('')}</select></td><td><select class="rating" data-concept-rating="team" data-concept-factor="${j}" aria-label="Team concept ${esc(f.label)}">${[1,2,3,4,5].map(v=>`<option value="${v}" ${team[j]===v?'selected':''}>${v}/5</option>`).join('')}</select></td></tr>`).join('')}
+    <tr class="score-row"><td>Provisional concept score</td><td>${fmt(conceptScore(mentor))}/100</td><td>${fmt(conceptScore(team))}/100</td></tr></tbody></table></div>
+    <div class="coach-grid" style="margin-top:15px"><div class="coach-box"><h3>Why my concept is promising</h3><ul><li>One well-defined job for a known primary user.</li><li>Four-screen MVP with a visible completion state.</li><li>Readable rules and labeled sample data reduce demo risk.</li><li>Explicit stakeholder, pilot ask and measurable target.</li></ul></div><div class="coach-box gold"><h3>What my concept still cannot prove</h3><ul><li>Personas and demand have NOT been validated.</li><li>The chosen technique may not match hidden challenge constraints.</li><li>Sample data are not proof of real-world operation.</li><li>Technical reliability and impact remain untested until implementation.</li></ul></div></div>
+    <div class="field" style="margin-top:14px"><label class="label" for="concept-comparison">Our conclusion: which approach should win, why, and what evidence is missing?</label><textarea class="textarea" id="concept-comparison" data-concept-field="comparison" placeholder="State why PSU's idea is better, why the mentor's is better, or how to combine them; name specific evidence or testing required...">${esc(state.concept.comparison)}</textarea></div>
+    <p class="small-alert">A model-generated example cannot earn a valid 5/5 by itself. The ratings are a deliberate coaching discussion, not automated expertise or official scores.</p>`;
+  }
+  function coachPage(){const c=getContext();
+    return `<div class="page-intro"><div><div class="eyebrow">New · Selected challenge → five-stage mentor solution</div><h1>Coach Blueprint</h1><p class="lead">A concrete, editable expert example for the challenge PSU selected. Use it to learn the SymStudio sequence and compare your own reasoning. It is an <b>offline illustrative framework</b> — not research, a live AI answer, or an official judge score.</p></div><div class="intro-actions"><a class="btn" href="#problems">← Three problems</a><a class="btn btn-primary" href="#pitch">Pitch Studio →</a></div></div>
+    ${notice}
+    <div class="mentor-hero"><span class="tag mint">${c.selected?'Selected competition challenge':'No challenge selected yet'}</span><h2>${esc(c.title)}</h2><p>${esc(c.brief)}</p><div class="mentor-actions"><a href="#problems" class="btn btn-ghost">Edit official statement ↗</a><button class="btn btn-amber" data-action="copy-all-coach">Copy complete mentor blueprint</button></div></div>
+    <div class="section-heading"><div><h2>Clarify the problem before generating</h2><p>These fields become variables across Empathy, Signal, Synthesize, Select, Shape, UX, and the pitch.</p></div><span class="tag amber">Editable context</span></div><div class="card">${profileEditor()}</div>
+    <div class="section-heading"><div><h2>Which personas should we generate and select?</h2><p>Start with the end user, then validate the workflow stakeholder and decision authority.</p></div></div><div class="card">${personaChooser(c)}</div>
+    <div class="section-heading"><div><h2>My example solution — all five SymStudio stages</h2><p>Each box contains practical stage output. The dedicated stage pages include copy-ready input prompts and team-versus-coach evaluation.</p></div></div>
+    ${STAGES.map(s=>{const g=guideFor(s.id,c);const cov=coverageFor(s.id,state.teamWork[s.id].answer);const n=cov.filter(x=>x.yes).length;return `<section class="card" style="margin-bottom:15px"><div class="card-title"><div><span class="cap-word">Stage ${s.num} · ${esc(s.sub)}</span><h2 style="margin:5px 0">${esc(s.name)}</h2></div><span class="score-chip">Your draft: ${n}/${cov.length} evidence signals</span></div><div class="instruction"><strong>Where to work in SymStudio:</strong> ${esc(g.location)}</div><div class="coach-box gold"><h3>Mentor example to critique</h3><div class="bodycopy">${esc(g.model)}</div></div><div class="mentor-actions"><button type="button" class="btn btn-small" data-action="copy-coach-stage" data-stage="${s.id}">Copy my example</button><button type="button" class="btn btn-small btn-primary" data-action="copy-coach-prompt" data-stage="${s.id}">Copy SymStudio input</button><a class="btn btn-small btn-ghost" href="#${s.id}">Write and compare your solution →</a></div></section>`;}).join('')}
+    ${conceptComparison(c)}
+    <div class="highlight-panel"><strong>Important difference</strong><p>Student work is the solution entered and completed in SymStudio. The mentor example is a scaffold that must be adapted, verified, and possibly rejected. Stage evidence signals are a simple keyword coverage check, not AI grading or PERFCT scores.</p></div>`;
+  }
+  function stageMentorPanel(s){const c=getContext(),g=guideFor(s.id,c);const data=state.teamWork[s.id];const cov=coverageFor(s.id,data.answer);const yes=cov.filter(x=>x.yes).length;
+    return `<div class="section-heading"><div><h2>Step-by-step SymStudio coach</h2><p>What to click, what to type, how to select outputs, and an example solution for this problem.</p></div><span class="tag amber">Illustrative expert guidance</span></div>
+    <div class="card"><div class="instruction"><b>Where to enter it:</b> ${esc(g.location)}</div><div class="coach-grid"><div class="coach-box"><h3>Do these actions in SymStudio</h3><ol style="margin:5px 0 0;padding-left:18px">${g.actions.map(a=>`<li style="font-size:12px;color:var(--muted);line-height:1.8">${esc(a)}</li>`).join('')}</ol></div><div class="coach-box gold"><h3>Mentor's example solution</h3><div class="bodycopy">${esc(g.model)}</div></div></div>
+    <div class="section-heading"><div><h2>Copy-ready stage input</h2><p>Paste only into an appropriate free-text field; use the structured controls where the stage requires selections.</p></div><button class="btn btn-small btn-primary" data-action="copy-coach-prompt" data-stage="${s.id}">Copy input</button></div>
+    <div class="mono-prompt">${esc(g.prompt)}</div>${s.id==='empathy'?`<div class="section-heading"><div><h2>Select personas, don't just generate them</h2><p>Review whom the product truly serves, then keep the decision-maker separate.</p></div></div>${personaChooser(c)}`:''}
+    <div class="section-heading"><div><h2>Compare: PSU team vs mentor example</h2><p>Write what the team ACTUALLY did in SymStudio. Do not claim evidence that is not available.</p></div></div>
+    <div class="comparison"><div class="coach-box"><div class="side-label">PSU team’s solution</div><label class="label" for="team-answer-${s.id}">Our own explanation and decisions</label><textarea class="textarea" style="min-height:225px" id="team-answer-${s.id}" data-team-field="${s.id}" data-field="answer" placeholder="Explain the selected users, evidence, approach, alternatives, and reasoning based on this stage...">${esc(data.answer)}</textarea><p class="field-note">Saved locally. Use the Refresh assessment button after editing.</p></div><div class="coach-box gold"><div class="side-label">Mentor’s proposed approach — critique it</div><div class="bodycopy">${esc(g.model)}</div></div></div>
+    <div class="section-heading"><div><h2>Coaching review · ${yes}/${cov.length} signals present</h2><p>This checks whether key kinds of evidence are mentioned; it cannot validate correctness, relevance, or user testing.</p></div><div class="intro-actions"><button type="button" class="btn btn-small btn-primary" data-action="refresh-coach">Refresh assessment</button><button type="button" class="btn btn-small" data-action="copy-review" data-stage="${s.id}">Copy deeper AI critique request</button></div></div>
+    <div class="rubric-meter"><div class="progress-track"><div class="progress-fill" style="width:${Math.round(yes/cov.length*100)}%"></div></div><span class="score-chip">${yes}/${cov.length}</span></div><div class="mini-list" style="margin-top:11px">${cov.map(z=>`<div class="mini-list-item ${z.yes?'yes':''}"><span class="status">${z.yes?'✓':'!'}</span><span>${esc(z.name)} ${z.yes?'— mentioned; verify the evidence':'— address this explicitly'}</span></div>`).join('')}</div>
+    <div class="field" style="margin-top:17px"><label class="label" for="team-delta-${s.id}">What is stronger in our approach, and what will we change after comparing?</label><textarea class="textarea" id="team-delta-${s.id}" data-team-field="${s.id}" data-field="reflection" placeholder="Our stronger idea / what to improve / what the Toyota coach said...">${esc(data.reflection)}</textarea></div>
+    <div class="mentor-actions"><a class="btn btn-ghost" href="#blueprint">See all five mentor stages →</a><a class="btn btn-primary" href="#${s.id==='shape'?'prototype':(STAGES[STAGES.findIndex(x=>x.id===s.id)+1]?.id||'pitch')}">Continue →</a></div>
+    </div>`;
+  }
+  function uxPage(){const c=getContext(),prompt=`Build a production-looking HACKATHON DEMO for the selected problem: ${c.title}\nOfficial challenge: ${c.brief}\nPrimary user: ${c.user}. Job: ${c.goal}.\nApp concept: ${c.product}, a ${c.feature}.\nCreate exactly four functional screens: intake → option/result comparison → detail/decision → confirmation. Use accessible mobile-responsive components, one primary action per screen, specific button labels, breadcrumb/progress indicators, minimal fields, transparent assumptions, and clear success/failure states.\nUse clearly labeled sample data: ${c.domain.data}. Do NOT pretend to have live data or proprietary Toyota integrations. Avoid authentication, payments, and nonessential features.\nCore flow: user can ${c.domain.action} and ${c.domain.result}. Save inputs/state as needed.\nTest: typical input, empty input, no option, confirmation; show meaningful handling for each.\nRisk to disclose: ${c.domain.risk}.\nIf I provide a style screenshot, use only its COLOR PALETTE, SPACING, and TYPE STYLE; preserve our layout and features, and do not copy logos, brand marks, or unrelated text. Motion: subtle staggered fade/slide-up on cards; reduced-motion support; no animation that hides the main action.`;
+    const flow=[['01 · START',`Input: ${c.domain.action}`,'Continue to results'],['02 · COMPARE','Only relevant options, reasons, cost/time where known','Inspect a match'],['03 · DECIDE','Show details, limitations and who acts next','Confirm next action'],['04 · DONE','Show clear completion and next step','Start another task']];
+    return `<div class="page-intro"><div><div class="eyebrow">After SymStudio Shape · Lovable / developer handoff</div><h1>Build & UX Lab</h1><p class="lead">A working app wins more trust than a visual mockup. Use these workshop-based UX rules, user-flow map, and a copy-ready builder prompt tailored to the selected challenge.</p></div><div class="intro-actions"><a href="#shape" class="btn">← Shape & PRD</a><a href="#pitch" class="btn btn-primary">Pitch Studio →</a></div></div>${notice}
+    <div class="mentor-hero"><span class="tag mint">User journey for ${esc(c.product)}</span><h2>One job. One main action per screen.</h2><p>Primary user: ${esc(c.user)}. Goal: ${esc(c.goal)}. The product should remove uncertainty with every step.</p></div>
+    <div class="section-heading"><div><h2>First map the user flow</h2><p>For each screen: its job, what it must show, its one main action, and where it leads.</p></div></div>
+    <div class="flow-preview">${flow.map(([title,body,button])=>`<div class="flow-screen"><strong>${esc(title)}</strong><p>${esc(body)}</p><span class="fake-cta">${esc(button)} →</span></div>`).join('')}</div>
+    <div class="section-heading"><div><h2>Six UX essentials from today's workshop</h2><p>Apply every one in the Lovable build, not only in the mockup.</p></div></div>
+    <div class="coach-grid three">${[['1. One primary action','One visually dominant CTA per screen; keep secondary actions quiet.'],['2. Name the next step','Use “Compare options” instead of a vague “Submit”.'],['3. Show progress','Step 2 of 4 and a Back control for a multi-step task.'],['4. Only what matters','Show relevant time, cost, status and reason; remove distractions.'],['5. No surprises','State costs, permissions and assumptions before confirming.'],['6. Confirm success','Show a clear done/next-step state, not an unexplained blank page.']].map(([title,body])=>`<div class="coach-box"><h3>${title}</h3><p>${esc(body)}</p></div>`).join('')}</div>
+    <div class="section-heading"><div><h2>Copy-ready Lovable build prompt</h2><p>Paste the final SymStudio PRD too; this is a practical MVP supplement, not a replacement for the PRD.</p></div><button class="btn btn-primary btn-small" data-action="copy-builder">Copy builder prompt</button></div><div class="mono-prompt">${esc(prompt)}</div>
+    <div class="section-heading"><div><h2>Animation, screenshots, and style guidance</h2><p>Use motion for orientation—not as a substitute for functionality.</p></div></div>
+    <div class="coach-grid"><div class="coach-box"><h3>Capturing animation (workshop)</h3><ul><li>Fastest: describe it precisely (“cards fade in and slide up”).</li><li>For complex motion: capture start, middle and end screenshots.</li><li>Optionally inspect one component’s styles in DevTools or replay animations in the Animations panel.</li><li>Useful terms: fade-in, stagger, slide-up, hover lift, scroll reveal, parallax (only if beneficial).</li></ul></div><div class="coach-box gold"><h3>Tell Lovable what to take and leave</h3><div class="bodycopy">Use visual inspiration ONLY for colors, font hierarchy, spacing, and the overall mood. Keep our existing app's layout, every functional feature, and content hierarchy. Do not copy logos, text, brand identities or unrelated animations. Keep keyboard access and reduced-motion support.</div><div class="mentor-actions"><button class="btn btn-small" data-action="copy-style">Copy style guidance</button></div></div></div>
+    <div class="section-heading"><div><h2>Non-negotiable demo tests</h2><p>Students must click through the actual deployed application and verify each behavior.</p></div></div><div class="card"><div class="mini-list">${['A realistic input completes the full journey.','An empty or invalid input triggers a helpful message.','No matching result shows a safe alternative, not a crash.','No secret API keys appear in browser code.','The live link opens on a different device and the README explains the demo.'].map(x=>`<div class="mini-list-item"><span class="status">□</span><span>${esc(x)}</span></div>`).join('')}</div><div class="mentor-actions"><a class="btn btn-primary" href="#pitch">Build the pitch →</a></div></div>`;
+  }
+  function pitchPage(){const c=getContext(),x=state.pitch,slides=slidePlan(c),text=pitchScript(c);
+    const styles=[['skit','15-second acted scenario'],['video','15-second original video'],['jingle','Six-second original jingle'],['direct','Direct executive opening']];
+    const askLevels=[['Explore','Permission to validate assumptions'],['Sponsor','Named sponsor for a pilot'],['Resources','A small pilot budget, people or tools'],['Policy','Permission to study a rule/process change'],['Priority','Reprioritization with leadership'],['Approval','Full deployment approval (rarely appropriate for an MVP)']];
+    return `<div class="page-intro"><div><div class="eyebrow">The Room · Audience as a System / AaaS</div><h1>Pitch Studio</h1><p class="lead">Make the judges confident enough to recommend a clear next action. Add a memorable micro-scene, original video, or original tagline only when it clarifies the user’s pain and the demo.</p></div><div class="intro-actions"><a href="#prototype" class="btn">← Build & UX</a><button class="btn btn-primary" data-action="copy-pitch">Copy pitch script</button></div></div>${notice}
+    <div class="mentor-hero"><span class="tag amber">Decision-first storytelling</span><h2>You are not pitching slides. You are asking a system to move.</h2><p>Align decision authority, lower risk exposure, show value in the organization’s language, explain why now, then ask for the smallest safe next decision. AaaS rewards decision usefulness over charisma.</p></div>
+    <div class="section-heading"><div><h2>Pick your memorable opening</h2><p>One short creative opener, immediately followed by the live product. Performance must never overshadow proof.</p></div></div>
+    <div class="card"><div class="pitch-choice">${styles.map(([id,label])=>`<button type="button" class="btn btn-small" data-action="pitch-style" data-style="${id}" aria-pressed="${x.style===id}">${esc(label)}</button>`).join('')}</div><div class="instruction" style="margin-bottom:0">${x.style==='skit'?'Use a short, believable customer scenario. Student A experiences the barrier; Student B plays the unhelpful old workflow; Student C freezes the scene and introduces the product.':x.style==='video'?'Play a captioned 15-second before/after recording only if the contest rules allow it; then do the live demo. Have a non-video fallback.':x.style==='jingle'?'Use a short ORIGINAL sung or spoken six-second line; no copyrighted songs, melodies, or recordings. Move directly into evidence.':'Open with one sharply defined user problem and a one-line promise; avoid lengthy introductions.'}</div></div>
+    <div class="section-heading"><div><h2>Three-minute executive pitch blueprint</h2><p>Adjust to the official time limit. This is a working rehearsal plan, not a promise about required pitch length.</p></div></div>
+    <div class="stepper">${[['0:00–0:20','Hook / acted user moment'],['0:20–0:45','System context / why it matters'],['0:45–1:45','LIVE product proof'],['1:45–2:15','Value and measured/target outcomes'],['2:15–2:40','Risks, trust and timing'],['2:40–3:00','Smallest safe decision ask']].map(([a,b])=>`<div class="s"><b>${a}</b><span>${b}</span></div>`).join('')}</div>
+    <div class="section-heading"><div><h2>Enter real evidence and customize the ask</h2><p>These inputs change the script shown below. Unfilled inputs use explicitly cautious examples.</p></div></div>
+    <div class="card"><div class="meta-grid">${[['hook','Opening user problem / real micro-scene','What happens to the person today?'],['proof','Actual demo evidence / test result','Which function worked? How was it tested?'],['risk','Largest risk + mitigation','What does Toyota need to know before piloting?'],['ask','Exact decision requested','Who should permit what pilot, under what conditions?']].map(([id,l,ph])=>`<div class="field"><label class="label" for="pitch-${id}">${esc(l)}</label><textarea id="pitch-${id}" class="textarea" data-pitch-field="${id}" placeholder="${esc(ph)}">${esc(x[id])}</textarea></div>`).join('')}</div><div class="mentor-actions"><button class="btn btn-primary" data-action="refresh-coach">Refresh pitch script</button></div></div>
+    <div class="section-heading"><div><h2>Presentation content · Six slides</h2><p>Keep slides sparse; demonstrate the working product rather than reading the deck.</p></div></div>
+    <div class="slide-grid">${slides.map(([num,title,body])=>`<div class="slide-card"><small>SLIDE ${num}</small><h3>${esc(title)}</h3><p>${esc(body)}</p></div>`).join('')}</div>
+    <div class="section-heading"><div><h2>Rehearsal script tailored to the challenge</h2><p>Write natural lines for each student, then run the live demo without skipping steps.</p></div><button class="btn btn-small btn-primary" data-action="copy-pitch">Copy entire script</button></div><div class="mono-prompt" style="max-height:none">${esc(text)}</div>
+    <div class="section-heading"><div><h2>The Value–Risk–Timing triangle</h2><p>One weak side can stop an organizational decision, even if the demo looks impressive.</p></div></div>
+    <div class="coach-grid three"><div class="coach-box"><h3>VALUE — why it matters</h3><p>Identify the beneficiary and align to Toyota or the relevant organization's incentives. Measure ${esc(c.metric)}; never invent returns.</p></div><div class="coach-box"><h3>RISK — what could fail</h3><p>${esc(c.domain.risk)}. Disclose limits, privacy exposure, escalation paths, and how a limited pilot makes the risk smaller.</p></div><div class="coach-box"><h3>TIMING — why now</h3><p>Explain the current decision window and a realistic next step. Avoid claiming urgency without a genuine trigger.</p></div></div>
+    <div class="section-heading"><div><h2>Calibrate the ask</h2><p>Choose the smallest safe movement. A six-hour prototype usually supports exploration or a pilot, not unrestricted deployment.</p></div></div><div class="card"><div class="coach-grid three">${askLevels.map(([a,b],i)=>`<div class="coach-box ${i===0?'gold':''}"><h3>${i+1}. ${esc(a)}</h3><p>${esc(b)}</p></div>`).join('')}</div></div>
+    <div class="section-heading"><div><h2>When judges push back, treat resistance as data</h2><p>Don't defend reflexively. Ask which boundary you have failed to address and recalibrate.</p></div></div><div class="coach-grid three">${[['Authority boundary','Are we asking the wrong role or approval level?'],['Exposure / risk','Is the pilot too broad or the mitigation unclear?'],['Resource pressure','Is the ask too costly in staffing or tools?'],['Incentive mismatch','Have we translated benefits into the stakeholder’s priorities?'],['Context sensitivity','Is this the wrong time or business context?'],['Recalibrate','Reduce scope, produce missing evidence, or change the ask.']].map(([a,b])=>`<div class="coach-box"><h3>${a}</h3><p>${b}</p></div>`).join('')}</div>
+    <div class="section-heading"><div><h2>Judge Q&amp;A rehearsal</h2><p>Students should answer with evidence, explicit limits, and their own technical understanding.</p></div></div><div class="card"><div class="mini-list">${[`Who is the real user and who has approval authority?`,`Can you click through ${c.product} end to end using a new input?`,`How did SymStudio's five stages change your concept?`,`Which data are real versus synthetic, and what risks remain?`,`Why this approach instead of your second finalist?`,`What evidence would convince ${c.approver} to sponsor a limited pilot?`].map((q,i)=>`<div class="mini-list-item"><span class="status">${i+1}.</span><span>${esc(q)}</span></div>`).join('')}</div><div class="mentor-actions"><button class="btn btn-small" data-action="copy-slides">Copy slide outline</button><a class="btn btn-primary" href="#ready">Check final readiness →</a></div></div>`;
+  }
+  function coachTextForAll(){const c=getContext();return [`PSU Panthers · ILLUSTRATIVE MENTOR BLUEPRINT`,`Selected problem: ${c.title}`,`Official statement: ${c.brief}`,`Primary user: ${c.user}; Decision maker: ${c.approver}`,`Goal: ${c.goal}; Constraint: ${c.constraint}; Metric: ${c.metric}`,`Note: Hypotheses only until verified.`,...STAGES.flatMap(s=>{const g=guideFor(s.id,c);return [`\n${s.num}. ${s.name}`,`WHERE: ${g.location}`,`STEPS:\n- ${g.actions.join('\n- ')}`,`COPY-READY PROMPT:\n${g.prompt}`,`MENTOR EXAMPLE:\n${g.model}`,`TEAM ANSWER:\n${state.teamWork[s.id].answer||'(not entered)'}`]})].join('\n\n');}
+  function reviewPrompt(id){const c=getContext(),g=guideFor(id,c);return `Act as a demanding but supportive university hackathon product mentor. Challenge statement: ${c.brief}\nStage: ${id}\nReference mentor example, explicitly hypothetical and not automatically correct:\n${g.model}\nPSU student's actual solution:\n${state.teamWork[id].answer||'(not yet entered)'}\nAssess factual grounding, problem fit, specificity, and six-hour feasibility. Give strengths, gaps, evidence to verify, and three actionable edits. Challenge assumptions in BOTH solutions. Use a 1–5 COACHING score with rationale, not an official PERFCT score. Do not invent interviews, citations, API availability, or test results.`;}
+
+  function fresh() {
+    return {
+      version:VERSION,
+      problems:[0,1,2].map(i=>({title:'Problem '+(i+1),brief:'',notes:'',ratings:FACTORS.map(()=>3)})),
+      selected:null,
+      stages:Object.fromEntries(STAGES.map(s=>[s.id,{checked:{},ratings:{},evidence:'',coach:'',link:''}])),
+      readiness:{},
+      profiles:[0,1,2].map(()=>({user:'',approver:'',goal:'',constraint:'',metric:'',persona:'0',altPersona:'2'})),
+      teamWork:Object.fromEntries(STAGES.map(s=>[s.id,{answer:'',reflection:''}])),
+      pitch:{style:'skit',hook:'',proof:'',risk:'',ask:''},
+      concept:{name:'',summary:'',comparison:'',ratingsCoach:FACTORS.map(()=>3),ratingsTeam:FACTORS.map(()=>3)},
+      generalNotes:'', updatedAt:new Date().toISOString()
+    };
+  }
+  function validData(obj) {
+    if (!obj || typeof obj!=='object' || !Array.isArray(obj.problems) || obj.problems.length!==3 || !obj.stages || !obj.readiness) throw new Error('This is not a compatible PSU Panthers progress file.');
+    const d=fresh();
+    d.problems=obj.problems.map((p,i)=>({
+      title:String(p.title??('Problem '+(i+1))).slice(0,160),brief:String(p.brief??'').slice(0,15000),notes:String(p.notes??'').slice(0,8000),
+      ratings:FACTORS.map((_,j)=>{const v=Number((p.ratings||[])[j]);return Number.isInteger(v)&&v>=1&&v<=5?v:3;})
+    }));
+    d.selected=Number.isInteger(obj.selected) && obj.selected>=0 && obj.selected<3 ? obj.selected : null;
+    STAGES.forEach(s=>{
+      const inp=obj.stages[s.id] || {}, dest=d.stages[s.id];
+      dest.evidence=String(inp.evidence??'').slice(0,40000);
+      dest.coach=String(inp.coach??'').slice(0,20000);
+      dest.link=String(inp.link??'').slice(0,2000);
+      s.tasks.forEach(t=>{dest.checked[t[0]]=inp.checked?.[t[0]]===true;});
+      s.rubric.forEach(r=>{const v=Number(inp.ratings?.[r[0]]);dest.ratings[r[0]]=Number.isInteger(v)&&v>=1&&v<=5?v:0;});
+    });
+    READINESS.forEach(g=>g.items.forEach(item=>{d.readiness[g.id+':'+item[0]]=obj.readiness[g.id+':'+item[0]]===true;}));
+    d.profiles=d.profiles.map((base,i)=>{const v=obj.profiles?.[i]||{}; return Object.fromEntries(Object.keys(base).map(k=>[k,String(v[k]??base[k]).slice(0,3000)]));});
+    STAGES.forEach(s=>{const x=obj.teamWork?.[s.id]||{};d.teamWork[s.id]={answer:String(x.answer??'').slice(0,30000),reflection:String(x.reflection??'').slice(0,12000)};});
+    const allowed=['skit','video','jingle','direct']; const pitch=obj.pitch||{};
+    d.pitch={style:allowed.includes(pitch.style)?pitch.style:'skit',hook:String(pitch.hook??'').slice(0,5000),proof:String(pitch.proof??'').slice(0,5000),risk:String(pitch.risk??'').slice(0,5000),ask:String(pitch.ask??'').slice(0,5000)};
+    const concept=obj.concept||{};
+    d.concept={name:String(concept.name??'').slice(0,200),summary:String(concept.summary??'').slice(0,15000),comparison:String(concept.comparison??'').slice(0,15000),
+      ratingsCoach:FACTORS.map((_,i)=>{const v=Number(concept.ratingsCoach?.[i]);return Number.isInteger(v)&&v>=1&&v<=5?v:3;}),
+      ratingsTeam:FACTORS.map((_,i)=>{const v=Number(concept.ratingsTeam?.[i]);return Number.isInteger(v)&&v>=1&&v<=5?v:3;})};
+    d.generalNotes=String(obj.generalNotes??'').slice(0,30000);
+    return d;
+  }
+  function load() { try { const str=localStorage.getItem(KEY); return str ? validData(JSON.parse(str)) : fresh(); } catch(e) { console.warn('Could not load saved progress:',e); return fresh(); } }
+  let state=load();
+  function save(){state.updatedAt=new Date().toISOString(); try {localStorage.setItem(KEY,JSON.stringify(state));document.getElementById('save-status').textContent='● Saved locally';}catch(e){document.getElementById('save-status').textContent='! Export backup';} }
+  function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+  function problemScore(i){return FACTORS.reduce((total,f,j)=>total+(state.problems[i].ratings[j]*f.weight/5),0);}
+  function fmt(n){return Number(n).toFixed(0);}
+  function stageProgress(s){const req=s.tasks.filter(t=>t[3]);const done=req.filter(t=>state.stages[s.id].checked[t[0]]).length; return {done,total:req.length,pct:Math.round(done/req.length*100)};}
+  function stageRating(s){const scores=s.rubric.map(r=>Number(state.stages[s.id].ratings[r[0]]||0)).filter(n=>n>0);return {n:scores.length,total:s.rubric.length,avg:scores.length?scores.reduce((a,b)=>a+b,0)/scores.length:null};}
+  function overallProgress(){const tasks=STAGES.flatMap(s=>s.tasks.filter(t=>t[3]).map(t=>state.stages[s.id].checked[t[0]]));return {done:tasks.filter(Boolean).length,total:tasks.length,pct:Math.round(tasks.filter(Boolean).length/tasks.length*100)};}
+  function bestProblems(){const scores=state.problems.map((_,i)=>problemScore(i));const max=Math.max(...scores);return scores.map((v,i)=>({v,i})).filter(x=>Math.abs(x.v-max)<.0001);}
+  function navigate(page){location.hash=page;}
+  function currentPage(){const page=location.hash.replace(/^#/,'').toLowerCase();return ['problems','blueprint','empathy','signal','synthesize','select','shape','prototype','pitch','ready'].includes(page)?page:'problems';}
+  function renderNav(){const page=currentPage();const nav=[['problems','00','Choose a problem'],['blueprint','★','Coach Blueprint'],...STAGES.map(s=>[s.id,s.num,s.name]),['prototype','◆','Build & UX Lab'],['pitch','▶','Pitch Studio'],['ready','✓','Final readiness']];
+    document.getElementById('navigation').innerHTML=nav.map(([id,num,label])=>{
+      const prog=STAGES.find(s=>s.id===id);const status=prog?stageProgress(prog).pct+'%':'';
+      return `<a href="#${id}" class="${page===id?'active':''}" ${page===id?'aria-current="page"':''}><span class="nav-num">${esc(num)}</span><span class="nav-label">${esc(label)}</span><span class="nav-status">${esc(status)}</span></a>`;
+    }).join('');
+    const challenge=state.selected==null?'No challenge selected':state.problems[state.selected].title;
+    document.getElementById('top-challenge').textContent='Challenge: '+challenge;
+  }
+  const notice = `<div class="notice"><span class="info-dot" aria-hidden="true">ⓘ</span><div><b>Important scoring distinction:</b> The 100-point challenge selection matrix and five-stage self-ratings on this site are <b>PSU coaching tools</b>, not official PERFCT results or SymStudio Theatre points. Complete the real work in <a class="link" href="https://sym.studio/dashboard" target="_blank" rel="noopener noreferrer">SymStudio</a> and follow the organizer's official 17-criterion judging guide.</div></div>`;
+  function problemPage(){
+    const best=bestProblems(); const tied=best.length>1; const selected=state.selected;
+    return `<div class="page-intro"><div><div class="eyebrow">Step 00 · First 15–20 minutes</div><h1>Pick the right challenge.</h1><p class="lead">When Toyota releases the three official problem statements, paste them below and compare all three. Start with neutral ratings of 3/5: every problem begins at <strong>60/100</strong>. Rate using evidence, then confirm the choice with your Toyota coach.</p></div><div class="intro-actions"><a class="btn btn-ghost" href="https://sym.studio/dashboard" target="_blank" rel="noopener noreferrer">Open SymStudio ↗</a><a class="btn btn-primary" href="#empathy">Go to Empathy →</a></div></div>
+      ${notice}
+      <div class="stats">
+        <div class="stat"><div class="stat-k">Best current score</div><div class="stat-v green">${fmt(best[0].v)}<span class="tiny"> / 100</span></div><div class="stat-foot">${tied?'Tie: '+best.map(x=>esc(state.problems[x.i].title)).join(' · '):esc(state.problems[best[0].i].title)}</div></div>
+        <div class="stat"><div class="stat-k">Chosen challenge</div><div class="stat-v small">${selected===null?'Not selected':esc(state.problems[selected].title)}</div><div class="stat-foot">Make a deliberate choice; top score is only a guide.</div></div>
+        <div class="stat"><div class="stat-k">Build window</div><div class="stat-v amber">6 <span class="tiny">hours</span></div><div class="stat-foot">Including evaluation, testing, and pitching.</div></div>
+        <div class="stat"><div class="stat-k">SymStudio workflow</div><div class="stat-v">5 <span class="tiny">stages</span></div><div class="stat-foot">Empathy · Signal · Synthesize · Select · Shape</div></div>
+      </div>
+      <div class="section-heading"><div><h2>The three problem statements</h2><p>Use the exact organizer wording. Describe dependencies, unclear requirements, or access risks.</p></div><span class="tag">Editable</span></div>
+      <div class="problem-grid">${state.problems.map((p,i)=>`<section class="card problem ${selected===i?'selected':''} ${best.some(x=>x.i===i)?'best':''}">
+        <div class="problem-head"><div><span class="tag ${selected===i?'mint':best.length===1&&best[0].i===i?'amber':''}">${selected===i?'✓ Selected':best.length===1&&best[0].i===i?'Top score':`Option 0${i+1}`}</span></div><div class="score">${fmt(problemScore(i))}<span>/100</span></div></div>
+        <div class="field"><label class="label" for="title-${i}">Problem title</label><input id="title-${i}" class="input" maxlength="160" data-problem="${i}" data-field="title" value="${esc(p.title)}" placeholder="Problem ${i+1}"></div>
+        <div class="field"><label class="label" for="brief-${i}">Official problem statement</label><textarea id="brief-${i}" class="textarea" data-problem="${i}" data-field="brief" placeholder="Paste the challenge as provided by Toyota…">${esc(p.brief)}</textarea></div>
+        <div class="field"><label class="label" for="notes-${i}">Coach notes / concerns</label><textarea id="notes-${i}" class="textarea" data-problem="${i}" data-field="notes" placeholder="Available data? Required integration? Most promising idea?" style="min-height:70px">${esc(p.notes)}</textarea></div>
+        <button class="btn ${selected===i?'btn-primary':'btn-ghost'}" type="button" data-action="choose-problem" data-index="${i}">${selected===i?'✓ Current challenge':'Choose this challenge'}</button>
+      </section>`).join('')}</div>
+      ${selected===null?`<div class="highlight-panel"><strong>Next: choose one problem</strong><p>When the team selects a challenge, the Coach Blueprint will adapt its personas, product model, five SymStudio prompts, build plan and pitch to the chosen problem.</p></div>`:`<div class="mentor-hero" style="margin-top:23px"><span class="tag mint">Selected challenge · Working brief</span><h2>${esc(state.problems[selected].title)}</h2><p>${esc(state.problems[selected].brief||'Paste the complete official challenge statement above, then open the Coach Blueprint.')}</p><div class="mentor-actions"><a class="btn btn-primary" href="#blueprint">Generate stage-by-stage Coach Blueprint →</a><a class="btn" href="#pitch">Prepare pitch →</a></div></div>`}
+      <div class="section-heading"><div><h2>Decision matrix</h2><p>Score each factor 1 (weak), 2, 3 (neutral), 4, or 5 (excellent). Weights add up to 100%.</p></div><span class="tag amber">PSU selection rubric</span></div>
+      <div class="card scoretable-wrapper"><table class="scoretable"><thead><tr><th>Selection factor / weight</th>${state.problems.map(p=>`<th>${esc(p.title)}</th>`).join('')}</tr></thead><tbody>${FACTORS.map((f,j)=>`<tr><td><strong>${esc(f.label)}</strong> <span class="weight">${f.weight}%</span><span class="help">${esc(f.tip)}</span></td>${state.problems.map((p,i)=>`<td><label class="tiny" for="rating-${i}-${j}">Rate ${i+1} / factor ${j+1}</label><br><select id="rating-${i}-${j}" class="rating" data-score-problem="${i}" data-score-factor="${j}" aria-label="${esc(p.title)}: ${esc(f.label)}">${[1,2,3,4,5].map(n=>`<option value="${n}" ${p.ratings[j]===n?'selected':''}>${n}/5</option>`).join('')}</select></td>`).join('')}</tr>`).join('')}<tr class="score-row"><td>Total weighted score</td>${state.problems.map((_,i)=>`<td>${fmt(problemScore(i))}/100</td>`).join('')}</tr></tbody></table></div>
+      <div class="highlight-panel"><strong>${tied?'Decision guidance: tie — gather more evidence':'Highest-scoring option: '+esc(state.problems[best[0].i].title)}</strong><p>${tied?'More than one challenge has the same top score. Review the real constraints and ask your Toyota coach which has the clearest user value and most reliable demo path. Do not choose automatically.':'Use the leading score as guidance, not as an automatic decision. Confirm feasibility, user impact, and the event rules with the Toyota coach before committing.'}</p></div>
+      <p class="footnote">Selection score = sum of each 1–5 rating × its weight ÷ 5. The initial six ratings of 3/5 produce exactly 60/100 for all three challenges. Changing your ratings recalculates totals instantly.</p>`;
+  }
+  function stagePage(s){const d=state.stages[s.id], prog=stageProgress(s), r=stageRating(s);
+    const i=STAGES.findIndex(x=>x.id===s.id);const next=STAGES[i+1]; const prev=STAGES[i-1];
+    return `<div class="page-intro"><div><div class="eyebrow">SymStudio · Stage ${s.num} of 05 · ${esc(s.sub)}</div><h1>${esc(s.name)} <span style="color:var(--quiet);font-weight:650">/ ${esc(s.verb)}</span></h1><p class="lead">${esc(s.intro)}</p></div><div class="intro-actions"><a class="btn btn-ghost" href="https://sym.studio/dashboard" target="_blank" rel="noopener noreferrer">Open SymStudio ↗</a><a class="btn" href="${next?'#'+next.id:'#ready'}">${next?'Next: '+esc(next.name):'Final readiness'} →</a></div></div>
+      ${notice}
+      <div class="stage-banner"><div><strong>Target output</strong><p>${esc(s.output)}</p></div><span class="stage-number">STAGE ${s.num} / 05</span></div>
+      <div class="stats">
+        <div class="stat"><div class="stat-k">Required checks completed</div><div class="stat-v green">${prog.done}<span class="tiny"> / ${prog.total}</span></div><div class="stat-foot">${prog.pct}% stage checklist readiness</div></div>
+        <div class="stat"><div class="stat-k">Coach self-rating</div><div class="stat-v ${r.avg===null?'':'amber'}">${r.avg===null?'—':r.avg.toFixed(2)}<span class="tiny"> / 5</span></div><div class="stat-foot">${r.n} of ${r.total} coaching criteria rated</div></div>
+        <div class="stat"><div class="stat-k">Selected competition problem</div><div class="stat-v small">${state.selected===null?'Not selected':esc(state.problems[state.selected].title)}</div><div class="stat-foot">Use the organizer-approved challenge.</div></div>
+        <div class="stat"><div class="stat-k">Competition workflow</div><div class="stat-v small">${prog.pct===100?'Checks complete':'In progress'}</div><div class="stat-foot">Complete work inside SymStudio separately.</div></div>
+      </div>
+      <div class="subgrid">
+        <section class="card"><div class="card-title"><h3>What the team must do and verify</h3><span>${prog.done} / ${prog.total} required</span></div>
+          <div class="stage-meter"><div class="progress-top"><span>Checklist progress</span><strong>${prog.pct}%</strong></div><div class="progress-track"><div class="progress-fill" style="width:${prog.pct}%"></div></div></div>
+          <div class="checkgroup">${s.tasks.map(t=>{const checked=Boolean(d.checked[t[0]]);return `<label class="check-item ${checked?'done':''}"><input type="checkbox" data-stage-check="${s.id}" data-check-id="${t[0]}" ${checked?'checked':''}><span class="check-text"><span class="check-title">${esc(t[1])}</span><span class="check-desc">${esc(t[2])}</span></span><span class="check-meta ${t[3]?'required':''}">${t[3]?'Core':'Extra'}</span></label>`;}).join('')}</div>
+        </section>
+        <section class="card"><div class="card-title"><h3>Stage quality self-rubric</h3><span>1 = weak · 5 = excellent</span></div><p class="tiny" style="line-height:1.7;margin-bottom:12px">These are PSU coaching scores to help the team improve its work. They do not add Theatre points or replace PERFCT judges' scores.</p>
+          ${s.rubric.map(x=>`<div class="rubric-item"><div><strong>${esc(x[1])}</strong><p>${esc(x[2])}</p></div><select class="rating rubric-rating" aria-label="Rate ${esc(x[1])}" data-stage-rating="${s.id}" data-rubric-id="${x[0]}"><option value="0" ${!d.ratings[x[0]]?'selected':''}>Not rated</option>${[1,2,3,4,5].map(n=>`<option value="${n}" ${d.ratings[x[0]]===n?'selected':''}>${n}/5</option>`).join('')}</select></div>`).join('')}
+          <div class="highlight-panel"><strong>What judges should be able to inspect</strong><p>${esc(s.reminder)}</p></div>
+        </section>
+      </div>
+      <div class="section-heading"><div><h2>Evidence and handoff</h2><p>Save concise proof of your work. Do not enter sensitive or proprietary information.</p></div><span class="tag">Saved locally</span></div>
+      <div class="card"><div class="field"><label class="label" for="evidence-${s.id}">Stage evidence / key decisions</label><textarea class="textarea" id="evidence-${s.id}" style="min-height:130px" data-stage-field="${s.id}" data-field="evidence" placeholder="${esc(s.evidencePrompt)}">${esc(d.evidence)}</textarea></div>
+        <div class="two-fields"><div class="field"><label class="label" for="link-${s.id}">SymStudio or artifact URL (optional)</label><input class="input" id="link-${s.id}" data-stage-field="${s.id}" data-field="link" value="${esc(d.link)}" placeholder="https://..."></div><div class="field"><label class="label" for="coach-${s.id}">Toyota coach feedback</label><textarea class="textarea" id="coach-${s.id}" style="min-height:70px" data-stage-field="${s.id}" data-field="coach" placeholder="${esc(s.coachPrompt)}">${esc(d.coach)}</textarea></div></div>
+        <div class="intro-actions" style="margin-top:5px"><button type="button" class="btn btn-ghost" data-action="copy-stage" data-stage="${s.id}">Copy this stage summary</button>${prev?`<a class="btn btn-ghost" href="#${prev.id}">← ${esc(prev.name)}</a>`:`<a class="btn btn-ghost" href="#problems">← Problem selection</a>`}<a class="btn btn-primary" href="${next?'#'+next.id:'#ready'}">${next?'Continue to '+esc(next.name):'Review final readiness'} →</a></div>
+      </div>
+      ${stageMentorPanel(s)}`;
+  }
+  function readinessPage(){const overall=overallProgress();const readyTotal=READINESS.reduce((n,g)=>n+g.items.length,0);const readyDone=READINESS.reduce((n,g)=>n+g.items.filter(t=>state.readiness[g.id+':'+t[0]]).length,0);
+    return `<div class="page-intro"><div><div class="eyebrow">Final checkpoint · Judge and submission readiness</div><h1>Make the next decision easy.</h1><p class="lead">A technically credible product, an inspectable SymStudio journey, and a decision-ready presentation. Confirm every official submission requirement before the six-hour deadline.</p></div><div class="intro-actions"><button type="button" class="btn btn-ghost" data-action="export-md">Download report ↓</button><button type="button" class="btn btn-primary" data-action="export-json">Backup progress ↓</button></div></div>
+      ${notice}
+      <div class="stats">
+        <div class="stat"><div class="stat-k">Competition problem</div><div class="stat-v small">${state.selected===null?'Not selected':esc(state.problems[state.selected].title)}</div><div class="stat-foot">Selection score: ${state.selected===null?'—':fmt(problemScore(state.selected))+'/100'} (coaching only)</div></div>
+        <div class="stat"><div class="stat-k">Required stage checks</div><div class="stat-v green">${overall.done}<span class="tiny"> / ${overall.total}</span></div><div class="stat-foot">${overall.pct}% completed across five stages</div></div>
+        <div class="stat"><div class="stat-k">Final readiness checks</div><div class="stat-v amber">${readyDone}<span class="tiny"> / ${readyTotal}</span></div><div class="stat-foot">Technical, decision, and submission checks</div></div>
+        <div class="stat"><div class="stat-k">Official judging</div><div class="stat-v small">17 criteria</div><div class="stat-foot">Full official detailed rubric not entered here</div></div>
+      </div>
+      <div class="section-heading"><div><h2>SymStudio stage completion</h2><p>Click a stage to finish missing evidence or self-ratings.</p></div></div>
+      <div class="card">${STAGES.map(s=>{const p=stageProgress(s),r=stageRating(s);return `<div class="stage-row"><a class="stage-name link" href="#${s.id}">${s.num} · ${esc(s.name)} ↗</a><span class="tiny">${r.avg===null?'Not rated':r.avg.toFixed(2)+'/5'}</span><div class="mini-track"><span style="width:${p.pct}%"></span></div><span class="pct">${p.pct}%</span></div>`}).join('')}</div>
+      <div class="mentor-hero"><span class="tag mint">New · Complete product coaching</span><h2>Review the expert blueprint and rehearse the Room.</h2><p>Compare your answers against illustrative solutions, validate the MVP with the UX lab, and use a short user-centered acted scenario or original video without losing technical credibility.</p><div class="mentor-actions"><a class="btn btn-primary" href="#blueprint">Coach Blueprint →</a><a class="btn" href="#prototype">Build & UX Lab →</a><a class="btn" href="#pitch">Pitch Studio →</a></div></div>
+      <div class="section-heading"><div><h2>Judging and submission checks</h2><p>These are practical preparation targets; follow the actual event checklist if it differs.</p></div></div>
+      <div class="readiness-grid">${READINESS.map(g=>{const gDone=g.items.filter(t=>state.readiness[g.id+':'+t[0]]).length;return `<section class="card"><div class="card-title"><h3>${esc(g.name)}</h3><span>${gDone}/${g.items.length}</span></div><p class="tiny" style="line-height:1.65;margin-bottom:14px">${esc(g.description)}</p><div class="checkgroup">${g.items.map(t=>{const checked=state.readiness[g.id+':'+t[0]];return `<label class="check-item ${checked?'done':''}"><input type="checkbox" data-ready-group="${g.id}" data-ready-item="${t[0]}" ${checked?'checked':''}><span class="check-text"><span class="check-title">${esc(t[1])}</span></span></label>`;}).join('')}</div></section>`}).join('')}</div>
+      <div class="section-heading"><div><h2>Six-hour execution timeline</h2><p>Adjust based on the organizer's real submission and judging schedule.</p></div></div>
+      <div class="timeline"><div class="time-step"><strong>0:00–0:20</strong><span>Compare 3 problems and select the official challenge.</span></div><div class="time-step"><strong>0:20–1:25</strong><span>Empathy → Shape in SymStudio; produce a build-ready PRD.</span></div><div class="time-step"><strong>1:25–4:20</strong><span>Build one complete MVP workflow and integrate core data/API.</span></div><div class="time-step"><strong>4:20–5:20</strong><span>Test real inputs, error states, deployment, and backup.</span></div><div class="time-step"><strong>5:20–6:00</strong><span>Rehearse, deliver a decision-ready pitch, and submit on time.</span></div></div>
+      <div class="section-heading"><div><h2>Final team notes</h2><p>Track the remaining blocker, the responsible teammate, and the pitch's decision ask.</p></div></div>
+      <div class="card"><label class="label" for="general-notes">Outstanding actions / decisions</label><textarea class="textarea" id="general-notes" style="min-height:135px" data-general-notes placeholder="Owner + action + due time; most serious remaining risk; approval/pilot request...">${esc(state.generalNotes)}</textarea><div class="intro-actions" style="margin-top:14px"><button type="button" class="btn btn-primary" data-action="export-md">Download shareable summary (.md)</button><button type="button" class="btn" data-action="export-json">Export backup (.json)</button><button type="button" class="btn btn-ghost" data-action="print">Print this checklist</button></div></div>
+      <p class="footnote">From the example PERFCT judging screen, The Build was shown at 35% and The Loop at 25%. Other category weights and all 17 exact criterion names were not established. This site intentionally does not manufacture those missing facts. The Theatre leaderboard is a separate engagement measure.</p>`;
+  }
+  function render(restore=false){const y=restore?window.scrollY:0;renderNav();const page=currentPage();const s=STAGES.find(x=>x.id===page);document.getElementById('app-content').innerHTML=page==='problems'?problemPage():page==='blueprint'?coachPage():page==='prototype'?uxPage():page==='pitch'?pitchPage():page==='ready'?readinessPage():stagePage(s); if(restore)window.scrollTo(0,y); else window.scrollTo({top:0,behavior:'instant'});}
+  function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('show'),2600);}
+  function dl(filename,contents,type){const url=URL.createObjectURL(new Blob([contents],{type}));const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);}
+  function makeReport(){let lines=['# PSU Panthers — Hackathon Coaching Report','',`Generated: ${new Date().toLocaleString()}`,'','> Coaching rubric only. Not the official PERFCT score, SymStudio Theatre score, or official submission.','','## Challenge Selection'];
+    state.problems.forEach((p,i)=>{lines.push('',`### ${p.title} — ${fmt(problemScore(i))}/100`,p.brief||'(Statement not recorded)',p.notes?'Coach notes: '+p.notes:'',...FACTORS.map((f,j)=>`- ${f.label}: ${p.ratings[j]}/5 (${f.weight}% weight)`));});
+    lines.push('','**Chosen challenge:** '+(state.selected===null?'Not selected':state.problems[state.selected].title),'');
+    STAGES.forEach(s=>{const d=state.stages[s.id],prog=stageProgress(s),r=stageRating(s);lines.push(`## ${s.num}. ${s.name}`,`Required checklist: ${prog.done}/${prog.total}`,`Coach self-rating: ${r.avg===null?'not rated':r.avg.toFixed(2)+'/5'} (${r.n}/${r.total} scored)`,'','### Checklist',...s.tasks.map(t=>`- [${d.checked[t[0]]?'x':' '}] ${t[1]}${t[3]?' [core]':''}`),'','### Self-rating',...s.rubric.map(x=>`- ${x[1]}: ${d.ratings[x[0]]?d.ratings[x[0]]+'/5':'Not rated'}`),'','### Evidence',d.evidence||'(not recorded)','',`Artifact URL: ${d.link||'(not recorded)'}`,'',`Toyota coach: ${d.coach||'(not recorded)'}`,'');});
+    lines.push('## Final Readiness');READINESS.forEach(g=>{lines.push('',`### ${g.name}`,...g.items.map(t=>`- [${state.readiness[g.id+':'+t[0]]?'x':' '}] ${t[1]}`));});    lines.push('','## Student vs mentor product comparison',`Mentor concept: ${getContext().product} — ${fmt(conceptScore(state.concept.ratingsCoach))}/100`,`Student concept: ${state.concept.name} — ${fmt(conceptScore(state.concept.ratingsTeam))}/100`,state.concept.summary,state.concept.comparison,'','## Selected problem and expert coaching','',coachTextForAll(),'','## Pitch draft','',pitchScript(getContext()),'','## Slide outline','',...slidePlan(getContext()).map(s=>s.join(' — ')),'','## Outstanding notes',state.generalNotes||'(none)','');return lines.join('\n');
+  }
+  async function copyText(text){try{await navigator.clipboard.writeText(text);toast('Copied to clipboard.');}catch(e){dl('psu-panthers-stage.txt',text,'text/plain');toast('Downloaded text instead of copying.');}}
+
+  document.addEventListener('input',e=>{const el=e.target;
+    if(el.matches('[data-problem][data-field]')){const i=Number(el.dataset.problem);state.problems[i][el.dataset.field]=el.value;save();}
+    else if(el.matches('[data-stage-field]')){state.stages[el.dataset.stageField][el.dataset.field]=el.value;save();}
+    else if(el.matches('[data-profile-field]')){if(state.selected!==null){state.profiles[state.selected][el.dataset.profileField]=el.value;save();}}
+    else if(el.matches('[data-team-field]')){state.teamWork[el.dataset.teamField][el.dataset.field]=el.value;save();}
+    else if(el.matches('[data-pitch-field]')){state.pitch[el.dataset.pitchField]=el.value;save();}
+    else if(el.matches('[data-concept-field]')){state.concept[el.dataset.conceptField]=el.value;save();}
+    else if(el.matches('[data-general-notes]')){state.generalNotes=el.value;save();}
+  });
+  document.addEventListener('change',e=>{const el=e.target;
+    if(el.matches('[data-score-problem]')){state.problems[Number(el.dataset.scoreProblem)].ratings[Number(el.dataset.scoreFactor)]=Number(el.value);save();render(true);}
+    else if(el.matches('[data-stage-check]')){state.stages[el.dataset.stageCheck].checked[el.dataset.checkId]=el.checked;save();render(true);}
+    else if(el.matches('[data-stage-rating]')){state.stages[el.dataset.stageRating].ratings[el.dataset.rubricId]=Number(el.value);save();render(true);}
+    else if(el.matches('[data-ready-group]')){state.readiness[el.dataset.readyGroup+':'+el.dataset.readyItem]=el.checked;save();render(true);}
+    else if(el.matches('[data-concept-rating]')){state.concept[el.dataset.conceptRating==='coach'?'ratingsCoach':'ratingsTeam'][Number(el.dataset.conceptFactor)]=Number(el.value);save();render(true);}
+    else if(el.matches('[data-profile-field]')){save();render(true);}
+    else if(el.matches('[data-problem][data-field="title"]')){render(true);}
+  });
+  document.addEventListener('click',async e=>{const el=e.target.closest('[data-action]');if(!el)return;const action=el.dataset.action;
+    if(action==='choose-problem'){state.selected=Number(el.dataset.index);save();render(true);toast('Challenge selected. Validate with the Toyota coach.');}
+    else if(action==='export-json'){dl('psu-panthers-progress.json',JSON.stringify(state,null,2),'application/json');toast('Progress backup downloaded.');}
+    else if(action==='import-json'){document.getElementById('import-file').click();}
+    else if(action==='export-md'){dl('psu-panthers-team-report.md',makeReport(),'text/markdown;charset=utf-8');toast('Team report downloaded.');}
+    else if(action==='copy-stage'){const s=STAGES.find(x=>x.id===el.dataset.stage),d=state.stages[s.id];const txt=[s.name,s.output,'Checklist:',...s.tasks.map(t=>`${d.checked[t[0]]?'✓':'○'} ${t[1]}`),'Evidence:',d.evidence||'(none)','Artifact:',d.link||'(none)','Toyota coach feedback:',d.coach||'(none)'].join('\n');await copyText(txt);}
+    else if(action==='refresh-coach'){save();render(true);toast('Coach examples and review refreshed.');}
+    else if(action==='copy-coach-prompt'){await copyText(guideFor(el.dataset.stage,getContext()).prompt);}
+    else if(action==='copy-coach-stage'){await copyText(guideFor(el.dataset.stage,getContext()).model);}
+    else if(action==='copy-all-coach'){await copyText(coachTextForAll());}
+    else if(action==='copy-review'){await copyText(reviewPrompt(el.dataset.stage));}
+    else if(action==='copy-builder'){const c=getContext();const txt=`Build a responsive MVP for ${c.title}. Exact problem: ${c.brief}. Primary user: ${c.user}. Job: ${c.goal}. Product: ${c.product}, ${c.feature}. Create four functional screens: intake, comparison, detail/decision, confirmation. Each screen has one primary action and a visible next step. Use labeled sample data: ${c.domain.data}. Core journey: ${c.domain.action} and ${c.domain.result}. Include invalid input, no-result, and completed states. Avoid proprietary APIs, invented live information, secrets, nonessential authentication and payments. Explainable rules, accessible layout, responsive design, a README and testable acceptance checks. Limitation: ${c.domain.risk}. Style inspiration may contribute colors/fonts/spacing only: never copy logos or text.`; await copyText(txt);}
+    else if(action==='copy-style'){await copyText('Use visual inspiration ONLY for colors, font hierarchy, spacing and overall mood. Keep our existing app layout, every functional feature and content hierarchy. Do not copy logos, text, brand identities or unrelated animations. Use subtle fade-in and staggered slide-up where useful, preserve keyboard accessibility and reduced-motion support.');}
+    else if(action==='pitch-style'){state.pitch.style=el.dataset.style;save();render(true);}
+    else if(action==='copy-pitch'){await copyText(pitchScript(getContext()));}
+    else if(action==='copy-slides'){await copyText(slidePlan(getContext()).map(s=>s.join(' — ')).join('\n'));}
+    else if(action==='reset'){if(confirm('Reset all three problem ratings, stage checklists, and notes on THIS DEVICE? Export a JSON backup first if you might need this data.')){state=fresh();save();navigate('problems');render();toast('Practice data reset.');}}
+    else if(action==='print'){window.print();}
+  });
+  document.getElementById('import-file').addEventListener('change',async e=>{const file=e.target.files?.[0];if(!file)return;try{const text=await file.text();const imported=validData(JSON.parse(text));if(!confirm('Replace progress on this device with the imported backup?'))return;state=imported;save();render(true);toast('Progress imported successfully.');}catch(err){alert('Could not import file: '+err.message);}finally{e.target.value='';}});
+  window.addEventListener('hashchange',()=>render());
+  save();render();
+})();
+</script>
+</body>
+</html>
